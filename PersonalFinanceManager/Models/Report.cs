@@ -125,12 +125,17 @@ namespace PersonalFinanceManager.Models
         /// Группирует транзакции по категориям
         /// </summary>
         /// <returns>Словарь, где ключ - категория, значение - сумма по этой категории</returns>
-        public Dictionary<Category, decimal> GetTransactionsByCategory()
+        /// <summary>
+        /// Группирует транзакции по категориям
+        /// </summary>
+        /// <returns>Словарь, где ключ - категория, значение - сумма по этой категории</returns>
+        public Dictionary<int, decimal> GetTransactionsByCategory()
         {
             return Transactions
-                .GroupBy(t => t.Category)
+                .GroupBy(t => t.CategoryId) // Use CategoryId instead of Category
                 .ToDictionary(g => g.Key, g => g.Sum(t => t.Amount));
         }
+
 
         /// <summary>
         /// Группирует транзакции по датам
