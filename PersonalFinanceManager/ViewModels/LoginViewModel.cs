@@ -3,7 +3,7 @@ using System.Windows.Input;
 
 namespace PersonalFinanceManager.ViewModels
 {
-    public class LoginViewModel : BaseViewModel
+    public class LoginViewModel : ViewModelBase
     {
         private readonly AuthService _authService;
         public string Username { get; set; }

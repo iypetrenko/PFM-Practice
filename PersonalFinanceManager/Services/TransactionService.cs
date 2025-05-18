@@ -1,28 +1,37 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PersonalFinanceManager.Data;
-using PersonalFinanceManager.Models;
+﻿using PersonalFinanceManager.Models;
+using PersonalFinanceManager.Services.Interfaces;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace PersonalFinanceManager.Services
 {
-    public class TransactionService
+    public class TransactionService : ITransactionService
     {
-        private readonly ApplicationDbContext _context;
+        // Временное хранилище в памяти (замените на реальную БД)
+        private readonly List<Transaction> _transactions = new();
+        private int _nextId = 1;
 
-        public TransactionService(ApplicationDbContext context)
+        public async Task<IEnumerable<Transaction>> GetTransactions()
         {
-            _context = context;
-        }
-        public List<Transaction> GetTransactions()
-        {
-            return _context.Transactions
-                .Include(t => t.CategoryId) // Replace 'Category' with 'CategoryId'
-                .ToList();
+            // Имитация асинхронной операции
+            return await Task.FromResult(_transactions.AsReadOnly());
         }
 
-        public void AddTransaction(Transaction transaction)
+        public async Task AddTransaction(Transaction transaction)
         {
-            _context.Transactions.Add(transaction);
-            _context.SaveChanges();
+            transaction.Id = _nextId++;
+            _transactions.Add(transaction);
+            await Task.CompletedTask;
+        }
+
+        public async Task DeleteTransaction(int id)
+        {
+            var transaction = _transactions.Find(t => t.Id == id);
+            if (transaction != null)
+            {
+                _transactions.Remove(transaction);
+            }
+            await Task.CompletedTask;
         }
     }
 }

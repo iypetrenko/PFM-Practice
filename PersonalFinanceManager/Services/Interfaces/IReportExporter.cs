@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace PersonalFinanceManager.Interfaces
+namespace PersonalFinanceManager.Services.Interfaces
 {
     /// <summary>
     /// Интерфейс для экспорта финансовых отчетов в различные форматы

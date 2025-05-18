@@ -1,42 +1,40 @@
 ﻿using PersonalFinanceManager.Models;
 using PersonalFinanceManager.Services;
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace PersonalFinanceManager.ViewModels
 {
-    public class AddEditTransactionViewModel : BaseViewModel
+    public class AddEditTransactionViewModel : ViewModelBase
     {
         private readonly TransactionService _transactionService;
+        private readonly CategoryService _categoryService;
+
         public Transaction Transaction { get; set; }
         public List<Category> Categories { get; set; }
         public List<string> TransactionTypes => new List<string> { "Income", "Expense" };
 
         public ICommand SaveCommand { get; }
 
-        // Replace the abstract Transaction with a concrete implementation
-        public class ConcreteTransaction : Transaction
-        {
-            public override void Validate()
-            {
-                // Add validation logic here
-            }
-
-            public override string GetTransactionDetails()
-            {
-                return $"Transaction Details: Amount={Amount}, Date={Date}, CategoryId={CategoryId}, AccountId={AccountId}";
-            }
-        }
-
-        // Update the ViewModel to use the concrete implementation
-        public AddEditTransactionViewModel(TransactionService transactionService, CategoryService categoryService)
+        public AddEditTransactionViewModel(
+            TransactionService transactionService,
+            CategoryService categoryService)
         {
             _transactionService = transactionService;
-            Categories = categoryService.GetCategories();
+            _categoryService = categoryService;
+
+            LoadCategories();
             SaveCommand = new RelayCommand(Save);
-            Transaction = new ConcreteTransaction { Date = DateTime.Now }; // Use the concrete class
+            Transaction = new Transaction { Date = DateTime.Now };
         }
 
+        private async void LoadCategories()
+        {
+            Categories = (List<Category>)await _categoryService.GetCategories();
+            OnPropertyChanged(nameof(Categories));
+        }
 
         private void Save()
         {
@@ -44,7 +42,6 @@ namespace PersonalFinanceManager.ViewModels
             OnRequestClose?.Invoke();
         }
 
-        // Для закрытия окна после сохранения
         public event Action OnRequestClose;
     }
 }

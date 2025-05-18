@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace PersonalFinanceManager.Interfaces
+namespace PersonalFinanceManager.Services.Interfaces
 {
     /// <summary>
     /// Интерфейс для генерации финансовых отчетов

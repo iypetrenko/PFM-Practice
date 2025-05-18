@@ -1,22 +1,26 @@
-﻿using PersonalFinanceManager.Data;
-using PersonalFinanceManager.Models;
+﻿using PersonalFinanceManager.Models;
+using PersonalFinanceManager.Services.Interfaces;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 
 namespace PersonalFinanceManager.Services
 {
-    public class CategoryService
+    public class CategoryService : ICategoryService
     {
-        private readonly ApplicationDbContext _context;
+        // Временное хранилище в памяти
+        private readonly List<Category> _categories = new();
+        private int _nextId = 1;
 
-        public CategoryService()
+        public async Task<IEnumerable<Category>> GetCategories()
         {
-            _context = new ApplicationDbContext();
+            return await Task.FromResult(new List<Category>());
         }
 
-        public List<Category> GetCategories()
+        public async Task AddCategory(Category category)
         {
-            return _context.Categories.ToList();
+            category.Id = _nextId++;
+            _categories.Add(category);
+            await Task.CompletedTask;
         }
     }
 }
