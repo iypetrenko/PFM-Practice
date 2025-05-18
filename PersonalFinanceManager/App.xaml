@@ -3,10 +3,10 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:PersonalFinanceManager"
-             xmlns:converters="clr-namespace:PersonalFinanceManager.Converters"
-             StartupUri="MainWindow.xaml">
+             xmlns:converters="clr-namespace:PersonalFinanceManager.Converters">
     <Application.Resources>
         <ResourceDictionary>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
             <Style x:Key="PlaceholderStyle" TargetType="TextBox">
                 <Setter Property="Template">

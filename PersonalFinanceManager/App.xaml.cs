@@ -4,32 +4,48 @@ using Microsoft.Extensions.DependencyInjection;
 using PersonalFinanceManager.Services;
 using PersonalFinanceManager.Services.Interfaces;
 using PersonalFinanceManager.ViewModels;
-using PersonalFinanceManager.Views; // Ensure this namespace is correct and the file exists
+using PersonalFinanceManager.Views;
 
-public partial class App : Application
+namespace PersonalFinanceManager
 {
-    public static IServiceProvider ServiceProvider { get; private set; }
-
-    protected override void OnStartup(StartupEventArgs e)
+    public partial class App : Application
     {
-        base.OnStartup(e);
-        var services = new ServiceCollection();
-        ConfigureServices(services);
-        ServiceProvider = services.BuildServiceProvider();
+        public static IServiceProvider ServiceProvider { get; private set; }
 
-        // Ensure MainWindow is instantiated with required dependencies
-        var transactionService = ServiceProvider.GetRequiredService<ITransactionService>();
-        var categoryService = ServiceProvider.GetRequiredService<ICategoryService>();
-        var mainWindow = new MainWindow(transactionService, categoryService);
-        mainWindow.DataContext = ServiceProvider.GetRequiredService<MainViewModel>();
-        mainWindow.Show();
-    }
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
 
+            // Configure dependency injection
+            var services = new ServiceCollection();
+            ConfigureServices(services);
+            ServiceProvider = services.BuildServiceProvider();
 
-    private void ConfigureServices(IServiceCollection services)
-    {
-        services.AddSingleton<ITransactionService, TransactionService>();
-        services.AddSingleton<ICategoryService, CategoryService>();
-        services.AddSingleton<MainViewModel>();
+            try
+            {
+                // Create and show the main window
+                var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
+                mainWindow.DataContext = ServiceProvider.GetRequiredService<MainViewModel>();
+                mainWindow.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error during startup: {ex.Message}\n\n{ex.StackTrace}",
+                    "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ConfigureServices(IServiceCollection services)
+        {
+            // Register services
+            services.AddSingleton<ITransactionService, TransactionService>();
+            services.AddSingleton<ICategoryService, CategoryService>();
+
+            // Register view models
+            services.AddSingleton<MainViewModel>();
+
+            // Register views
+            services.AddSingleton<MainWindow>();
+        }
     }
 }

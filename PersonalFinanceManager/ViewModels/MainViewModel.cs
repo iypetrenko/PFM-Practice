@@ -30,10 +30,7 @@ namespace PersonalFinanceManager.ViewModels
             _transactionService = new DesignTimeTransactionService();
             _categoryService = new DesignTimeCategoryService();
 
-            LoadDataCommand = new Commands.RelayCommand(async () => await LoadData());
-            AddTransactionCommand = new Commands.RelayCommand(AddTransaction);
-            DeleteTransactionCommand = new Commands.RelayCommand(DeleteTransaction, CanDeleteTransaction);
-            AddCategoryCommand = new Commands.RelayCommand(AddCategory);
+            InitializeCommands();
         }
 
         /// <summary>
@@ -43,16 +40,21 @@ namespace PersonalFinanceManager.ViewModels
             ITransactionService transactionService,
             ICategoryService categoryService)
         {
-            _transactionService = transactionService;
-            _categoryService = categoryService;
+            _transactionService = transactionService ?? throw new ArgumentNullException(nameof(transactionService));
+            _categoryService = categoryService ?? throw new ArgumentNullException(nameof(categoryService));
 
-            LoadDataCommand = new Commands.RelayCommand(async () => await LoadData());
-            AddTransactionCommand = new Commands.RelayCommand(AddTransaction);
-            DeleteTransactionCommand = new Commands.RelayCommand(DeleteTransaction, CanDeleteTransaction);
-            AddCategoryCommand = new Commands.RelayCommand(AddCategory);
+            InitializeCommands();
 
-            // Initial load
+            // Load data automatically when view model is created
             LoadDataCommand.Execute(null);
+        }
+
+        private void InitializeCommands()
+        {
+            LoadDataCommand = new AsyncRelayCommand(LoadData);
+            AddTransactionCommand = new AsyncRelayCommand(AddTransaction);
+            DeleteTransactionCommand = new RelayCommand<object>(DeleteTransaction, CanDeleteTransaction);
+            AddCategoryCommand = new RelayCommand(AddCategory);
         }
 
         public ObservableCollection<Transaction> Transactions { get; } = new ObservableCollection<Transaction>();
@@ -76,64 +78,102 @@ namespace PersonalFinanceManager.ViewModels
             set => SetProperty(ref _currentBalance, value);
         }
 
-        public ICommand LoadDataCommand { get; }
-        public ICommand AddTransactionCommand { get; }
-        public ICommand DeleteTransactionCommand { get; }
-        public ICommand AddCategoryCommand { get; }
+        public ICommand LoadDataCommand { get; private set; }
+        public ICommand AddTransactionCommand { get; private set; }
+        public ICommand DeleteTransactionCommand { get; private set; }
+        public ICommand AddCategoryCommand { get; private set; }
 
         private async Task LoadData()
         {
-            var transactions = await _transactionService.GetTransactions();
-            var categories = await _categoryService.GetCategories();
-
-            Transactions.Clear();
-            Categories.Clear();
-
-            foreach (var transaction in transactions)
+            try
             {
-                Transactions.Add(transaction);
-            }
+                var transactions = await _transactionService.GetTransactions();
+                var categories = await _categoryService.GetCategories();
 
-            foreach (var category in categories)
+                // Update UI on the UI thread
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    Transactions.Clear();
+                    Categories.Clear();
+
+                    foreach (var transaction in transactions)
+                    {
+                        Transactions.Add(transaction);
+                    }
+
+                    foreach (var category in categories)
+                    {
+                        Categories.Add(category);
+                    }
+
+                    UpdateBalance();
+                });
+            }
+            catch (Exception ex)
             {
-                Categories.Add(category);
+                // Log or handle exception
+                System.Diagnostics.Debug.WriteLine($"Error loading data: {ex.Message}");
             }
-
-            UpdateBalance();
         }
 
-        private async void AddTransaction()
+        private async Task AddTransaction()
         {
-            var newTransaction = new Transaction
+            try
             {
-                Date = DateTime.Now,
-                Amount = 0,
-                Description = "New Transaction", // Add a default description
-                CategoryId = SelectedCategory?.Id ?? 0
-            };
+                var newTransaction = new Transaction
+                {
+                    Date = DateTime.Now,
+                    Amount = 0,
+                    Description = "New Transaction",
+                    CategoryId = SelectedCategory?.Id ?? 0
+                };
 
-            await _transactionService.AddTransaction(newTransaction);
-            Transactions.Add(newTransaction);
-            UpdateBalance();
-        }
+                await _transactionService.AddTransaction(newTransaction);
 
-        private void DeleteTransaction()
-        {
-            if (SelectedTransaction != null)
+                // Update UI on the UI thread
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    Transactions.Add(newTransaction);
+                    UpdateBalance();
+                });
+            }
+            catch (Exception ex)
             {
-                _transactionService.DeleteTransaction(SelectedTransaction.Id);
-                Transactions.Remove(SelectedTransaction);
-                UpdateBalance();
+                System.Diagnostics.Debug.WriteLine($"Error adding transaction: {ex.Message}");
             }
         }
 
-        private bool CanDeleteTransaction() => SelectedTransaction != null;
+        private void DeleteTransaction(object parameter)
+        {
+            try
+            {
+                if (SelectedTransaction != null)
+                {
+                    _transactionService.DeleteTransaction(SelectedTransaction.Id);
+                    Transactions.Remove(SelectedTransaction);
+                    UpdateBalance();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error deleting transaction: {ex.Message}");
+            }
+        }
+
+        private bool CanDeleteTransaction(object parameter) => SelectedTransaction != null;
 
         private void AddCategory()
         {
-            var newCategory = new Category { Name = "New Category" };
-            _categoryService.AddCategory(newCategory);
-            Categories.Add(newCategory);
+            try
+            {
+                var newCategory = new Category { Name = "New Category" };
+                _categoryService.AddCategory(newCategory);
+                Categories.Add(newCategory);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error adding category: {ex.Message}");
+            }
         }
 
         private void UpdateBalance()
@@ -142,7 +182,7 @@ namespace PersonalFinanceManager.ViewModels
         }
     }
 
-    // Design-time service implementations - updated to match interface return types
+    // Design-time service implementations
     internal class DesignTimeTransactionService : ITransactionService
     {
         public Task<IEnumerable<Transaction>> GetTransactions()
@@ -157,11 +197,7 @@ namespace PersonalFinanceManager.ViewModels
 
         public Task AddTransaction(Transaction transaction) => Task.CompletedTask;
 
-        public Task DeleteTransaction(int id)
-        {
-            // Simulate async operation for design-time  
-            return Task.CompletedTask;
-        }
+        public Task DeleteTransaction(int id) => Task.CompletedTask;
     }
 
     internal class DesignTimeCategoryService : ICategoryService
@@ -176,30 +212,6 @@ namespace PersonalFinanceManager.ViewModels
             });
         }
 
-        public Task AddCategory(Category category)
-        {
-            // Simulate async operation for design-time
-            return Task.CompletedTask;
-        }
-    }
-
-    public class ViewModelBase : INotifyPropertyChanged
-    {
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected bool SetProperty<T>(ref T backingField, T value, [CallerMemberName] string propertyName = null)
-        {
-            if (EqualityComparer<T>.Default.Equals(backingField, value))
-                return false;
-
-            backingField = value;
-            OnPropertyChanged(propertyName);
-            return true;
-        }
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        public Task AddCategory(Category category) => Task.CompletedTask;
     }
 }

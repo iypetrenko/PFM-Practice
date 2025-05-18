@@ -10,7 +10,6 @@
 
     <!-- Define a View resource with proper instance of the MainViewModel -->
     <Window.Resources>
-        <viewmodels:MainViewModel x:Key="ViewModel"/>
     </Window.Resources>
 
     <!-- We'll comment this out since the DataContext is set from code-behind -->

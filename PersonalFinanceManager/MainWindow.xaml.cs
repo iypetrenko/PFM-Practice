@@ -8,10 +8,12 @@ namespace PersonalFinanceManager.Views
 {
     public partial class MainWindow : Window
     {
-        public MainWindow(ITransactionService transactionService, ICategoryService categoryService)
+        public MainWindow()
         {
             InitializeComponent();
-            DataContext = new MainViewModel(transactionService, categoryService);
+
+            // Уберите установку DataContext здесь.
+            // DataContext будет установлен через DI в App.xaml.cs.
         }
     }
 }
