@@ -131,14 +131,14 @@ namespace PersonalFinanceManager
                 budgetLimit += expenseCategory.MonthlyBudget;
             }
 
-            BudgetText.DataContext = new Limits() { Limit = "Allocated Budget: " + budgetLimit };
+            BudgetText.DataContext = new Limits() { Limit = "Виділений бюджет: " + budgetLimit };
 
             foreach (var item in items)
             {
                 grandTotalSpent += item.Price;
             }
 
-            SpentText.DataContext = new Limits() { Limit = "Total Spending: " + grandTotalSpent };
+            SpentText.DataContext = new Limits() { Limit = "Загальні витрати: " + grandTotalSpent };
 
             foreach (var expenseCategory in expenseCategories)
             {

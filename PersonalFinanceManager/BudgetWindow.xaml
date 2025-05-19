@@ -5,69 +5,156 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PersonalFinanceManager"
         mc:Ignorable="d"
-        Title="BudgetWindow" Height="800" Width="1300">
-    <Grid>
+        Title="Budget Status" Height="800" Width="1300">
+    <Window.Resources>
+        <Style x:Key="ModernButton" TargetType="{x:Type Button}">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Background" Value="#2E86C1"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}" 
+                               BorderBrush="{TemplateBinding BorderBrush}" 
+                               BorderThickness="{TemplateBinding BorderThickness}"
+                               CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#1A5276"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#154360"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="InfoPanel" TargetType="{x:Type Border}">
+            <Setter Property="Background" Value="#F0F7FC"/>
+            <Setter Property="BorderBrush" Value="#2E86C1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+
+        <Style x:Key="HeaderText" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
+
+        <Style x:Key="ValueText" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Foreground" Value="#2E86C1"/>
+            <Setter Property="FontWeight" Value="Regular"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="15">
         <Grid.RowDefinitions>
-            <RowDefinition Height="210*"/>
-            <RowDefinition Height="209*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="427*"/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition Width="363*"/>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <StackPanel x:Name="mainGrid"
-                Orientation="Horizontal" Margin="0,10,40,10" Grid.ColumnSpan="4" Grid.RowSpan="2" HorizontalAlignment="Right" Width="1074">
-            <Canvas x:Name="mainCanvas" 
-                Margin="20,0"/>
 
-            <ScrollViewer Margin="20,0"
-                      Padding="10"
-                      VerticalAlignment="Center"
-                      VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Hidden">
-                <ItemsControl x:Name="detailsItemsControl">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="{x:Type local:Category}">
-                            <StackPanel Orientation="Horizontal"
-                                    Margin="10">
-                                <Rectangle Width="20"
-                                       Height="20"
-                                       Fill="{Binding ColorBrush}"
-                                       Margin="0,0,5,0"
-                                       VerticalAlignment="Center"/>
+        <!-- Header -->
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="2"
+                   Text="Стан бюджету" 
+                   FontSize="24" 
+                   FontWeight="SemiBold" 
+                   Foreground="#333333" 
+                   Margin="150,3,-150,17"/>
 
-                                <TextBlock Text="{Binding Title}"
-                                       FontSize="20"
-                                       VerticalAlignment="Center"/>
+        <!-- Back Button -->
+        <Button Grid.Row="0" Grid.Column="0"
+                Content="Назад" 
+                Style="{StaticResource ModernButton}"
+                Click="BackButton_Click" 
+                Width="120"
+                Height="35"
+                HorizontalAlignment="Left" 
+                VerticalAlignment="Top"/>
 
-                                <TextBlock Text="{Binding Percentage}"
-                                       Foreground="{Binding ColorBrush}"
-                                       FontSize="20"
-                                       Margin="20,0,0,0"
-                                       VerticalAlignment="Center"/>
+        <!-- Budget Information Panel -->
+        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,15,0">
+            <Border Style="{StaticResource InfoPanel}">
+                <StackPanel>
+                    <TextBlock Text="Загальний бюджет" Style="{StaticResource HeaderText}"/>
+                    <TextBlock Name="BudgetText" Style="{StaticResource ValueText}">
+                        <Run Text="{Binding Limit}" />
+                    </TextBlock>
+                </StackPanel>
+            </Border>
 
-                                <TextBlock Text="%"
-                                       Foreground="{Binding ColorBrush}"
-                                       FontSize="20"
-                                       VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+            <Border Style="{StaticResource InfoPanel}">
+                <StackPanel>
+                    <TextBlock Text="Витрачено" Style="{StaticResource HeaderText}"/>
+                    <TextBlock Name="SpentText" Style="{StaticResource ValueText}">
+                        <Run Text="{Binding Limit}" />
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+            <Button Content="Експорт даних" 
+                    Style="{StaticResource ModernButton}"
+                    Click="Export_ClickAsync" 
+                    Width="150"
+                    HorizontalAlignment="Left"
+                    Margin="0,10,0,0"/>
         </StackPanel>
-        <Button Grid.Column="0" Content="Back" Click="BackButton_Click" Margin="10,10,0,0" Height="25" HorizontalAlignment="Left" Width="60" VerticalAlignment="Top" />
-        <TextBlock Name="BudgetText" Grid.Column="0"
-                   FontSize="20" Margin="10,54,0,0" HorizontalAlignment="Left" Width="268" Height="80" VerticalAlignment="Top">
-            <Run Text="{Binding Limit}" />
-        </TextBlock>
-        <TextBlock Name="SpentText" Grid.Column="0"
-                   FontSize="20"
-                   VerticalAlignment="Top" Height="80" Margin="10,134,0,0" HorizontalAlignment="Left" Width="268">
-            <Run Text="{Binding Limit}" />
-        </TextBlock>
-        <Button Grid.Column="0" Content="Export Data" Click="Export_ClickAsync" Margin="10,219,0,0" Height="25" HorizontalAlignment="Left" Width="110" VerticalAlignment="Top" />
+
+        <!-- Chart Section -->
+        <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="1"
+                Background="White"
+                BorderBrush="#2E86C1"
+                BorderThickness="1"
+                CornerRadius="4">
+            <StackPanel x:Name="mainGrid" Orientation="Horizontal">
+                <Canvas x:Name="mainCanvas" Margin="20,0"/>
+                <ScrollViewer Margin="10"
+                            VerticalAlignment="Center"
+                            VerticalScrollBarVisibility="Auto"
+                            HorizontalScrollBarVisibility="Hidden">
+                    <ItemsControl x:Name="detailsItemsControl">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type local:Category}">
+                                <StackPanel Orientation="Horizontal" Margin="10">
+                                    <Rectangle Width="20"
+                                           Height="20"
+                                           Fill="{Binding ColorBrush}"
+                                           Margin="0,0,10,0"
+                                           VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Title}"
+                                           FontSize="16"
+                                           VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Percentage}"
+                                           Foreground="{Binding ColorBrush}"
+                                           FontSize="16"
+                                           Margin="15,0,0,0"
+                                           VerticalAlignment="Center"/>
+                                    <TextBlock Text="%"
+                                           Foreground="{Binding ColorBrush}"
+                                           FontSize="16"
+                                           VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

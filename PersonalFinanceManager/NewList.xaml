@@ -4,14 +4,57 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="New category" Height="206.754" Width="281.754">
-    <StackPanel>
-        <TextBlock Text="Enter expense category name" Height="27" Margin="10,5,0.2,0" />
-        <TextBox KeyDown="OnKeyDownHandler" TabIndex="0" x:Name="NewCategoryName" Margin="10,0,10.2,0" />
+        Title="New category" Height="296" Width="322">
+    <Window.Resources>
+        <Style x:Key="ModernTextBox" TargetType="{x:Type TextBox}">
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="10,0,10,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#BBBBBB"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+        </Style>
 
-        <TextBlock Text="Monthly budget for category" Height="27" Margin="10,5,0.2,0" />
-        <TextBox KeyDown="OnKeyDownHandler" TabIndex="0" x:Name="NewCategoryBudget" Margin="10,0,10.2,0" />
-        
-        <Button TabIndex="1" Content="OK" Click="OKButton_Click" Margin="0,5,10.2,0" HorizontalAlignment="Right" Width="76" />
-    </StackPanel>
+        <Style x:Key="ModernButton" TargetType="{x:Type Button}">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Background" Value="#2E86C1"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}" 
+                               BorderBrush="{TemplateBinding BorderBrush}" 
+                               BorderThickness="{TemplateBinding BorderThickness}"
+                               CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#1A5276"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#154360"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border Background="White" BorderThickness="1" BorderBrush="#DDDDDD" Margin="8,10,10,9">
+        <StackPanel Margin="15,15,9,9">
+            <Label Content="Введіть назву категорії витрат" FontSize="13" Foreground="#555555" Margin="0,0,0,6" />
+            <TextBox KeyDown="OnKeyDownHandler" TabIndex="0" x:Name="NewCategoryName" Style="{StaticResource ModernTextBox}" Margin="0,0,0,15" />
+
+            <Label Content="Місячний бюджет категорії" FontSize="13" Foreground="#555555" Margin="0,0,0,6" />
+            <TextBox KeyDown="OnKeyDownHandler" TabIndex="0" x:Name="NewCategoryBudget" Style="{StaticResource ModernTextBox}" Margin="0,0,0,15" />
+
+            <Button TabIndex="1" Content="OK" Click="OKButton_Click" Style="{StaticResource ModernButton}" Width="100" HorizontalAlignment="Right" />
+        </StackPanel>
+    </Border>
 </Window>
