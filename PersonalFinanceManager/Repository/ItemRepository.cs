@@ -76,9 +76,6 @@ namespace PersonalFinanceManager.Repository
                 else
                 {
                     items = db.Items.ToList();
-
-                    // for now we select all items here but here we could search only for one field
-                    // eg: Price is selected in the combo box, then we search only by price
                  
                 }
                 return items;

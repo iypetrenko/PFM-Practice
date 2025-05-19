@@ -22,94 +22,20 @@ using OfficeOpenXml;
 
 namespace PersonalFinanceManager
 {
-
-
     public partial class BudgetWindow : Window
     {
-        private void NavigateToMainPage()
-        {
-            var mainWindow = new MainWindow();
-            mainWindow.Show();
-            Close();
-        }
-
-        private void BackButton_Click(object sender, RoutedEventArgs e)
-        {
-            NavigateToMainPage();
-        }
-
-        public Brush PickBrush()
-        {
-            var r = new Random();
-            var properties = typeof(Brushes).GetProperties();
-            var count = properties.Count();
-            var colour = properties
-            .Select(x => new { Property = x, Index = r.Next(count) })
-            .OrderBy(x => x.Index)
-            .First();
-            return (SolidColorBrush)colour.Property.GetValue(colour, null);
-        }
-
-        private List<SpendingCategories> GetUserExpenses()
-        {
-            var expenseCategories = _categoryList.GetExpenseCategoriesList();
-            var items = _itemList.GetAllItems();
-            List<SpendingCategories> output = new List<SpendingCategories>();
-
-            foreach(var cat in expenseCategories)
-            {
-                if (cat.UserId == SessionInfo.UserId)
-                {
-                    var aux = new SpendingCategories();
-                    aux.Name = cat.Name;
-                    aux.MonthlyBudget = cat.MonthlyBudget;
-
-                    foreach(var item in items)
-                    {
-                        if (item.ToDoListId == cat.Id)
-                            aux.Expenses += item.Price;
-                    }
-
-                    output.Add(aux);
-                }
-            }
-
-            return output;
-        }
-        private async Task SaveExcelFile(List<SpendingCategories> myCategories, FileInfo file)
-        {
-            if(file.Exists)
-            {
-                file.Delete();
-            }
-
-            using (var package = new ExcelPackage(file))
-            {
-                var ws = package.Workbook.Worksheets.Add("BudgetReport");
-
-                var range = ws.Cells["A1"].LoadFromCollection(myCategories, true);
-                range.AutoFitColumns();
-
-                await package.SaveAsync();
-            }
-        }
-
-        private async void Export_ClickAsync(object sender, RoutedEventArgs e)
-        {
-            string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-
-            var myCategories = GetUserExpenses();
-
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            var file = new FileInfo(path + "\\BudgetData.xlsx");
-
-            await SaveExcelFile(myCategories, file);
-        }
-
-
         private readonly IItemRepository _itemList = new ItemRepository();
         private readonly IExpenseCategoryRepository _categoryList = new ExpenseCategoryRepository();
         private List<Category> Categories { get; set; }
+
+        // Устанавливаем лицензию EPPlus при загрузке класса
+        // Updated to use the correct method for setting the license
+        static BudgetWindow()
+        {
+            // Set the EPPlus license to non-commercial using the appropriate method
+            ExcelPackage.License.SetNonCommercialPersonal("Your Name or Organization");
+        }
+
 
         public BudgetWindow()
         {
@@ -146,7 +72,7 @@ namespace PersonalFinanceManager
 
                 decimal categoryTotal = 0;
 
-                foreach(var item in auxItems)
+                foreach (var item in auxItems)
                 {
                     categoryTotal += item.Price;
                 }
@@ -157,7 +83,6 @@ namespace PersonalFinanceManager
                 aux.ColorBrush = PickBrush();
 
                 Categories.Add(aux);
-
             }
 
             detailsItemsControl.ItemsSource = Categories;
@@ -230,17 +155,120 @@ namespace PersonalFinanceManager
                 mainCanvas.Children.Add(outline2);
             }
         }
+
+        private void NavigateToMainPage()
+        {
+            var mainWindow = new MainWindow();
+            mainWindow.Show();
+            Close();
+        }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            NavigateToMainPage();
+        }
+
+        public Brush PickBrush()
+        {
+            var r = new Random();
+            var properties = typeof(Brushes).GetProperties();
+            var count = properties.Count();
+            var colour = properties
+            .Select(x => new { Property = x, Index = r.Next(count) })
+            .OrderBy(x => x.Index)
+            .First();
+            return (SolidColorBrush)colour.Property.GetValue(colour, null);
+        }
+
+        private List<SpendingCategories> GetUserExpenses()
+        {
+            var expenseCategories = _categoryList.GetExpenseCategoriesList();
+            var items = _itemList.GetAllItems();
+            List<SpendingCategories> output = new List<SpendingCategories>();
+
+            foreach (var cat in expenseCategories)
+            {
+                if (cat.UserId == SessionInfo.UserId)
+                {
+                    var aux = new SpendingCategories();
+                    aux.Name = cat.Name;
+                    aux.MonthlyBudget = cat.MonthlyBudget;
+
+                    foreach (var item in items)
+                    {
+                        if (item.ToDoListId == cat.Id)
+                            aux.Expenses += item.Price;
+                    }
+
+                    output.Add(aux);
+                }
+            }
+
+            return output;
+        }
+
+        private async Task SaveExcelFile(List<SpendingCategories> myCategories, FileInfo file)
+        {
+            try
+            {
+                if (file.Exists)
+                {
+                    file.Delete();
+                }
+
+                using (var package = new ExcelPackage(file))
+                {
+                    var ws = package.Workbook.Worksheets.Add("BudgetReport");
+
+                    var range = ws.Cells["A1"].LoadFromCollection(myCategories, true);
+                    range.AutoFitColumns();
+
+                    await package.SaveAsync();
+                }
+
+                MessageBox.Show("Файл успешно сохранен на рабочем столе: " + file.FullName,
+                    "Экспорт завершен", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка при сохранении файла: " + ex.Message,
+                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void Export_ClickAsync(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                var myCategories = GetUserExpenses();
+
+                // Создаем объект FileInfo
+                var file = new FileInfo(System.IO.Path.Combine(path, "BudgetData.xlsx"));
+
+                // Добавляем await перед вызовом асинхронного метода
+                await SaveExcelFile(myCategories, file);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Произошла ошибка при экспорте: " + ex.Message,
+                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
     }
+
     public class Category
     {
         public float Percentage { get; set; }
         public string Title { get; set; }
         public Brush ColorBrush { get; set; }
     }
+
     public class Limits
     {
         public string Limit { get; set; }
     }
+
     public class SpendingCategories
     {
         public string Name { get; set; }
