@@ -3,7 +3,7 @@ using PersonalFinanceManager.Model;
 
 namespace PersonalFinanceManager.Repository.Interface
 {
-    internal interface IExpenseCategoryRepository
+    public interface IExpenseCategoryRepository
     {
         bool AddExpenseCategory(string categoryName, decimal budget);
 

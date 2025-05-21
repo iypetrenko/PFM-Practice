@@ -8,9 +8,14 @@ namespace PersonalFinanceManager.Repository
 {
     public class ExpenseCategoryRepository : IExpenseCategoryRepository
     {
+        protected virtual PersonalFinanceManagerContext GetContext()
+        {
+            return new PersonalFinanceManagerContext();
+        }
+
         public bool AddExpenseCategory(string categoryName, decimal budget)
         {
-            using (var db = new PersonalFinanceManagerContext())
+            using (var db = GetContext())
             {
                 var newCategory = new ExpenseCategory
                 {
@@ -26,7 +31,7 @@ namespace PersonalFinanceManager.Repository
 
         public List<ExpenseCategory> GetExpenseCategoriesList()
         {
-            using (var db = new PersonalFinanceManagerContext())
+            using (var db = GetContext())
             {
                 return db.ExpenseCategories.Where(p => p.UserId == SessionInfo.UserId).ToList();
             }
@@ -34,7 +39,7 @@ namespace PersonalFinanceManager.Repository
 
         public bool RemoveExpenseCategory(int id)
         {
-            using (var db = new PersonalFinanceManagerContext())
+            using (var db = GetContext())
             {
                 var toDo = new ExpenseCategory { Id = id };
                 db.ExpenseCategories.Attach(toDo);

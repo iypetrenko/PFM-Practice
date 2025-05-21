@@ -2,7 +2,7 @@
 
 namespace PersonalFinanceManager.Model
 {
-    internal class PersonalFinanceManagerContext : DbContext
+    public class PersonalFinanceManagerContext : DbContext
     {
         public PersonalFinanceManagerContext() : base("PersonalFinanceManagerContext")
         {

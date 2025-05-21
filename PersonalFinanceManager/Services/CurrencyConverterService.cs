@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace PersonalFinanceManager.Services
 {
-    class CurrencyConverterService
+    public class CurrencyConverterService
     {
         private readonly String BASE_URI = "https://openexchangerates.org/";
         private readonly String API_VERSION = "v7";
@@ -14,7 +14,15 @@ namespace PersonalFinanceManager.Services
 
 
         public CurrencyConverterService() { }
-
+        protected virtual WebClient CreateWebClient()
+        {
+            return new WebClient();
+        }
+        protected virtual string DownloadString(string url)
+        {
+            var webClient = CreateWebClient();
+            return webClient.DownloadString(url);
+        }
         public Decimal GetCurrencyExchange(String localCurrency, String foreignCurrency)
         {
             var code = $"{localCurrency}_{foreignCurrency}";
@@ -25,22 +33,17 @@ namespace PersonalFinanceManager.Services
         private Decimal FetchSerializedData(String code)
         {
             var url = $"{BASE_URI}/api/{API_VERSION}/convert?q={code}&compact=ultra";
-            var webClient = new WebClient();
             var jsonData = String.Empty;
-
             var conversionRate = 1.0m;
             try
             {
-                jsonData = webClient.DownloadString(url);
-
+                jsonData = DownloadString(url);
                 var jsonObject = JsonConvert.DeserializeObject<Dictionary<string, decimal>>(jsonData);
                 conversionRate = jsonObject[code];
-
-
             }
             catch (Exception) { }
-
             return conversionRate;
         }
     }
 }
+

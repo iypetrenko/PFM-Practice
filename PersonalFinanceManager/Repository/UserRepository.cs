@@ -6,9 +6,14 @@ namespace PersonalFinanceManager.Repository
 {
     public class UserRepository : IUserRepository
     {
+        protected virtual PersonalFinanceManagerContext GetContext()
+        {
+            return new PersonalFinanceManagerContext();
+        }
+
         public User CheckLogin(string username, string password)
         {
-            using (var db = new PersonalFinanceManagerContext())
+            using (var db = GetContext())
             {
                 var result = db.Users.FirstOrDefault(p => p.UserName == username && p.Password == password);
                 return result;
@@ -17,7 +22,7 @@ namespace PersonalFinanceManager.Repository
 
         public bool RegisterUser(string username, string password)
         {
-            using (var db = new PersonalFinanceManagerContext())
+            using (var db = GetContext())
             {
                 var user = new User
                 {
@@ -29,5 +34,6 @@ namespace PersonalFinanceManager.Repository
                 return result > 0;
             }
         }
+
     }
 }

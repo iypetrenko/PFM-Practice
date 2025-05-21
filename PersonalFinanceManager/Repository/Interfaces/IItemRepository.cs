@@ -4,7 +4,7 @@ using PersonalFinanceManager.Model;
 
 namespace PersonalFinanceManager.Repository.Interface
 {
-    internal interface IItemRepository
+    public interface IItemRepository
     {
         bool AddNewItem(Item todoItem);
 
