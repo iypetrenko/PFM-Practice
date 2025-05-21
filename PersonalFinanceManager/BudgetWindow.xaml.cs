@@ -27,7 +27,7 @@ namespace PersonalFinanceManager
         private readonly IItemRepository _itemList = new ItemRepository();
         private readonly IExpenseCategoryRepository _categoryList = new ExpenseCategoryRepository();
         private List<Category> Categories { get; set; }
-
+        private User _currentUser;
         // Устанавливаем лицензию EPPlus при загрузке класса
         // Updated to use the correct method for setting the license
         static BudgetWindow()
@@ -37,8 +37,9 @@ namespace PersonalFinanceManager
         }
 
 
-        public BudgetWindow()
+        public BudgetWindow(User user)
         {
+            _currentUser = user;
             InitializeComponent();
 
             float pieWidth = 650, pieHeight = 650, centerX = pieWidth / 2, centerY = pieHeight / 2, radius = pieWidth / 2;
@@ -195,7 +196,7 @@ namespace PersonalFinanceManager
 
         private void NavigateToMainPage()
         {
-            var mainWindow = new MainWindow();
+            var mainWindow = new MainWindow(_currentUser);
             mainWindow.Show();
             Close();
         }

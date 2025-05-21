@@ -31,9 +31,11 @@ namespace PersonalFinanceManager.Repository
 
         public List<ExpenseCategory> GetExpenseCategoriesList()
         {
-            using (var db = GetContext())
+            using (var db = new PersonalFinanceManagerContext())
             {
-                return db.ExpenseCategories.Where(p => p.UserId == SessionInfo.UserId).ToList();
+                return db.ExpenseCategories
+                        .Where(p => p.UserId == SessionInfo.UserId)
+                        .ToList();
             }
         }
 

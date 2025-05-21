@@ -178,6 +178,9 @@
                             <Label PreviewMouseDown="Register_Clicked" Content="Ще не з нами? Зареєструйтись" 
                                    Style="{StaticResource LinkLabel}" HorizontalContentAlignment="Center" 
                                    VerticalContentAlignment="Center" />
+                            <Label PreviewMouseDown="BtnGuestLogin_Click" Content="Увійти як гість" x:Name="btnGuestLogin"
+                                   Style="{StaticResource LinkLabel}" HorizontalContentAlignment="Center" 
+                                    VerticalContentAlignment="Center" />
                         </StackPanel>
                     </Grid>
 

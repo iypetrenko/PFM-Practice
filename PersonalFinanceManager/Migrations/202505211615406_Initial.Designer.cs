@@ -7,13 +7,13 @@ namespace PersonalFinanceManager.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.5.1")]
-    public sealed partial class UpdateModels : IMigrationMetadata
+    public sealed partial class Initial : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(UpdateModels));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(Initial));
         
         string IMigrationMetadata.Id
         {
-            get { return "202505191555267_UpdateModels"; }
+            get { return "202505211615406_Initial"; }
         }
         
         string IMigrationMetadata.Source

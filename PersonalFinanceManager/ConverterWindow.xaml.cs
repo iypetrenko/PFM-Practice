@@ -6,6 +6,7 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using PersonalFinanceManager.Model;
 
 namespace PersonalFinanceManager
 {
@@ -14,7 +15,7 @@ namespace PersonalFinanceManager
     {
         private void NavigateToMainPage()
         {
-            var mainWindow = new MainWindow();
+            var mainWindow = new MainWindow(_currentUser);
             mainWindow.Show();
             Close();
         }
@@ -49,11 +50,13 @@ namespace PersonalFinanceManager
             public double CZK { get; set; }
             public double RON { get; set; }
         }
-
-        public ConverterWindow()
+        private User _currentUser;
+        public ConverterWindow(User currentUser)
         {
             InitializeComponent();
             ClearControls();
+            _currentUser = currentUser;
+
             GetValue();
         }
 

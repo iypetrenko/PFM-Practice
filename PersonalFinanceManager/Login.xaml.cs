@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Input;
 using PersonalFinanceManager.Consts;
+using PersonalFinanceManager.Model;
 using PersonalFinanceManager.Repository;
 using PersonalFinanceManager.Repository.Interface;
 
@@ -53,11 +54,28 @@ namespace PersonalFinanceManager
                     MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
+
+            // Специальная обработка для администратора
+            if (UserName.Text.ToLower() == "admin" && PasswordText.Password == "admin")
+            {
+                _userRepository.CreateAdminIfNotExists();
+                var admin = _userRepository.CheckLogin("admin", "admin");
+
+                if (admin != null)
+                {
+                    SessionInfo.UserId = admin.Id;
+                    var mainPage = new MainWindow(admin);
+                    mainPage.Show();
+                    Close();
+                    return;
+                }
+            }
+
             var result = _userRepository.CheckLogin(UserName.Text, PasswordText.Password);
             if (result != null)
             {
                 SessionInfo.UserId = result.Id;
-                var mainPage = new MainWindow();
+                var mainPage = new MainWindow(result);
                 mainPage.Show();
                 Close();
             }
@@ -68,7 +86,22 @@ namespace PersonalFinanceManager
                 ClearFields();
             }
         }
-
+        private void BtnGuestLogin_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var guestUser = _userRepository.CreateGuestUser();
+                SessionInfo.UserId = guestUser.Id; // Важно обновить сессию
+                var mainWindow = new MainWindow(guestUser);
+                mainWindow.Show();
+                Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка создания гостевого пользователя: {ex.Message}",
+                              "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
         private void ClearFields()
         {
             UserName.Text = "";

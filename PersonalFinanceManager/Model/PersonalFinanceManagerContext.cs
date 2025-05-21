@@ -1,16 +1,16 @@
 ﻿using System.Data.Entity;
+using PersonalFinanceManager.Migrations;
+using PersonalFinanceManager.Model;
 
-namespace PersonalFinanceManager.Model
+public class PersonalFinanceManagerContext : DbContext
 {
-    public class PersonalFinanceManagerContext : DbContext
+    public PersonalFinanceManagerContext()
+        : base("DefaultConnection")
     {
-        public PersonalFinanceManagerContext() : base("PersonalFinanceManagerContext")
-        {
-            Database.SetInitializer(new DropCreateDatabaseAlways<PersonalFinanceManagerContext>());
-        }
-
-        public DbSet<User> Users { get; set; }
-        public DbSet<ExpenseCategory> ExpenseCategories { get; set; }
-        public DbSet<Item> Items { get; set; }
+        Database.SetInitializer(new MigrateDatabaseToLatestVersion<PersonalFinanceManagerContext, Configuration>());
     }
+
+    public DbSet<User> Users { get; set; }
+    public DbSet<ExpenseCategory> ExpenseCategories { get; set; }
+    public DbSet<Item> Items { get; set; }
 }

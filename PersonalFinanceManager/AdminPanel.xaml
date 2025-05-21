@@ -1,0 +1,29 @@
+﻿<Window x:Class="PersonalFinanceManager.AdminPanel"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Адміністративна панель" Height="450" Width="600">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Управління користувачами" FontSize="18" Margin="10" FontWeight="Bold"/>
+
+        <DataGrid Grid.Row="1" x:Name="usersGrid" AutoGenerateColumns="False" Margin="10" SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
+                <DataGridTextColumn Header="Ім'я користувача" Binding="{Binding UserName}" Width="150"/>
+                <DataGridTextColumn Header="Роль" Binding="{Binding Role}" Width="100"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
+            <Button x:Name="btnViewUserData" Content="Переглянути дані" Click="BtnViewUserData_Click" Margin="5"/>
+            <Button x:Name="btnExportUserData" Content="Експортувати в Excel" Click="BtnExportUserData_Click" Margin="5"/>
+            <Button x:Name="btnClose" Content="Закрити" Click="BtnClose_Click" Margin="5"/>
+            <Button x:Name="btnAdminPanel" Content="Адмінпанель"  Visibility="Collapsed"/>
+        </StackPanel>
+    </Grid>
+</Window>

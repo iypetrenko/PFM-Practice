@@ -8,7 +8,7 @@ using PersonalFinanceManager.Repository.Interface;
 
 namespace PersonalFinanceManager
 {
-    public partial class ToDoDetails
+    public partial class ToDoDetails:Window
     {
         // Репозиторий для категорий расходов
         private readonly IExpenseCategoryRepository _categoriesRepository = new ExpenseCategoryRepository();
@@ -16,11 +16,12 @@ namespace PersonalFinanceManager
         private readonly IItemRepository _itemRepository = new ItemRepository();
         // Идентификатор текущего списка дел
         private readonly int _id;
-
+        private User _currentUser;
         // Конструктор окна деталей списка дел
-        public ToDoDetails(int id, string text)
+        public ToDoDetails(int id, string text, User user)
         {
             InitializeComponent();
+            _currentUser = user;
             _id = id;
             TodoName.Content = text;
             LoadToDoItems();
@@ -37,7 +38,7 @@ namespace PersonalFinanceManager
         // Переход на главную страницу
         private void NavigateToMainPage()
         {
-            var mainWindow = new MainWindow();
+            var mainWindow = new MainWindow(_currentUser);
             mainWindow.Show();
             Close();
         }

@@ -5,15 +5,17 @@ namespace PersonalFinanceManager.Model
 {
     public class User
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Key]
         public int Id { get; set; }
 
-        [MaxLength(24)]
         [Required]
+        [MaxLength(24)]
         public string UserName { get; set; }
 
         [Required]
         public string Password { get; set; }
+
+        [Required]
+        public UserRole Role { get; set; } = UserRole.User;
     }
 }
