@@ -67,8 +67,8 @@ namespace PersonalFinanceManager
 
             try
             {
-                var exportService = new ExcelExportService();
-                exportService.ExportUserData(selectedUser);
+                var exportService = new ExcelExportService(); // Create an instance of ExcelExportService
+                exportService.ExportUserData(selectedUser);   // Use the instance to call the method
                 MessageBox.Show("Експорт завершено успішно!");
             }
             catch (Exception ex)
