@@ -66,93 +66,130 @@ namespace PersonalFinanceManager
 
             SpentText.DataContext = new Limits() { Limit = "Загальні витрати: " + grandTotalSpent };
 
-            foreach (var expenseCategory in expenseCategories)
+            // Перевірка, чи є витрати взагалі
+            if (grandTotalSpent > 0)
             {
-                var auxItems = _itemList.GetItems(expenseCategory.Id);
-
-                decimal categoryTotal = 0;
-
-                foreach (var item in auxItems)
+                foreach (var expenseCategory in expenseCategories)
                 {
-                    categoryTotal += item.Price;
+                    var auxItems = _itemList.GetItems(expenseCategory.Id);
+
+                    decimal categoryTotal = 0;
+
+                    foreach (var item in auxItems)
+                    {
+                        categoryTotal += item.Price;
+                    }
+
+                    // Додаємо категорію тільки якщо є витрати 
+                    // або якщо це важливо для інтерфейсу, можна додавати з нульовим відсотком
+                    Category aux = new Category();
+                    aux.Title = expenseCategory.Name;
+                    aux.Percentage = grandTotalSpent > 0 ? (float)(categoryTotal / grandTotalSpent) * 100 : 0;
+                    aux.ColorBrush = PickBrush();
+
+                    Categories.Add(aux);
                 }
 
-                Category aux = new Category();
-                aux.Title = expenseCategory.Name;
-                aux.Percentage = (float)(categoryTotal / grandTotalSpent) * 100;
-                aux.ColorBrush = PickBrush();
+                detailsItemsControl.ItemsSource = Categories;
 
-                Categories.Add(aux);
-            }
-
-            detailsItemsControl.ItemsSource = Categories;
-
-            float angle = 0, prevAngle = 0;
-            foreach (var category in Categories)
-            {
-                double line1X = (radius * Math.Cos(angle * Math.PI / 180)) + centerX;
-                double line1Y = (radius * Math.Sin(angle * Math.PI / 180)) + centerY;
-
-                angle = category.Percentage * (float)360 / 100 + prevAngle;
-                Debug.WriteLine(angle);
-
-                double arcX = (radius * Math.Cos(angle * Math.PI / 180)) + centerX;
-                double arcY = (radius * Math.Sin(angle * Math.PI / 180)) + centerY;
-
-                var line1Segment = new LineSegment(new Point(line1X, line1Y), false);
-                double arcWidth = radius, arcHeight = radius;
-                bool isLargeArc = category.Percentage > 50;
-                var arcSegment = new ArcSegment()
+                float angle = 0, prevAngle = 0;
+                foreach (var category in Categories)
                 {
-                    Size = new Size(arcWidth, arcHeight),
-                    Point = new Point(arcX, arcY),
-                    SweepDirection = SweepDirection.Clockwise,
-                    IsLargeArc = isLargeArc,
-                };
-                var line2Segment = new LineSegment(new Point(centerX, centerY), false);
+                    // Пропускаємо категорії з нульовим відсотком - не відображаємо їх на діаграмі
+                    if (category.Percentage <= 0)
+                        continue;
 
-                var pathFigure = new PathFigure(
-                    new Point(centerX, centerY),
-                    new List<PathSegment>()
+                    double line1X = (radius * Math.Cos(angle * Math.PI / 180)) + centerX;
+                    double line1Y = (radius * Math.Sin(angle * Math.PI / 180)) + centerY;
+
+                    angle = category.Percentage * (float)360 / 100 + prevAngle;
+                    Debug.WriteLine(angle);
+
+                    double arcX = (radius * Math.Cos(angle * Math.PI / 180)) + centerX;
+                    double arcY = (radius * Math.Sin(angle * Math.PI / 180)) + centerY;
+
+                    var line1Segment = new LineSegment(new Point(line1X, line1Y), false);
+                    double arcWidth = radius, arcHeight = radius;
+                    bool isLargeArc = category.Percentage > 50;
+                    var arcSegment = new ArcSegment()
                     {
-                        line1Segment,
-                        arcSegment,
-                        line2Segment,
-                    },
-                    true);
+                        Size = new Size(arcWidth, arcHeight),
+                        Point = new Point(arcX, arcY),
+                        SweepDirection = SweepDirection.Clockwise,
+                        IsLargeArc = isLargeArc,
+                    };
+                    var line2Segment = new LineSegment(new Point(centerX, centerY), false);
 
-                var pathFigures = new List<PathFigure>() { pathFigure, };
-                var pathGeometry = new PathGeometry(pathFigures);
-                var path = new System.Windows.Shapes.Path()
+                    var pathFigure = new PathFigure(
+                        new Point(centerX, centerY),
+                        new List<PathSegment>()
+                        {
+                            line1Segment,
+                            arcSegment,
+                            line2Segment,
+                        },
+                        true);
+
+                    var pathFigures = new List<PathFigure>() { pathFigure, };
+                    var pathGeometry = new PathGeometry(pathFigures);
+                    var path = new System.Windows.Shapes.Path()
+                    {
+                        Fill = category.ColorBrush,
+                        Data = pathGeometry,
+                    };
+                    mainCanvas.Children.Add(path);
+
+                    prevAngle = angle;
+
+                    var outline1 = new Line()
+                    {
+                        X1 = centerX,
+                        Y1 = centerY,
+                        X2 = line1Segment.Point.X,
+                        Y2 = line1Segment.Point.Y,
+                        Stroke = Brushes.White,
+                        StrokeThickness = 5,
+                    };
+                    var outline2 = new Line()
+                    {
+                        X1 = centerX,
+                        Y1 = centerY,
+                        X2 = arcSegment.Point.X,
+                        Y2 = arcSegment.Point.Y,
+                        Stroke = Brushes.White,
+                        StrokeThickness = 5,
+                    };
+
+                    mainCanvas.Children.Add(outline1);
+                    mainCanvas.Children.Add(outline2);
+                }
+            }
+            else
+            {
+                // Відображення порожньої діаграми або повідомлення, якщо немає витрат
+                foreach (var expenseCategory in expenseCategories)
                 {
-                    Fill = category.ColorBrush,
-                    Data = pathGeometry,
-                };
-                mainCanvas.Children.Add(path);
+                    Category aux = new Category();
+                    aux.Title = expenseCategory.Name;
+                    aux.Percentage = 0;
+                    aux.ColorBrush = PickBrush();
+                    Categories.Add(aux);
+                }
 
-                prevAngle = angle;
+                detailsItemsControl.ItemsSource = Categories;
 
-                var outline1 = new Line()
+                // Можна додати текстове повідомлення на діаграму
+                TextBlock noDataText = new TextBlock
                 {
-                    X1 = centerX,
-                    Y1 = centerY,
-                    X2 = line1Segment.Point.X,
-                    Y2 = line1Segment.Point.Y,
-                    Stroke = Brushes.White,
-                    StrokeThickness = 5,
-                };
-                var outline2 = new Line()
-                {
-                    X1 = centerX,
-                    Y1 = centerY,
-                    X2 = arcSegment.Point.X,
-                    Y2 = arcSegment.Point.Y,
-                    Stroke = Brushes.White,
-                    StrokeThickness = 5,
+                    Text = "Немає даних для відображення",
+                    FontSize = 24,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
                 };
 
-                mainCanvas.Children.Add(outline1);
-                mainCanvas.Children.Add(outline2);
+                Canvas.SetLeft(noDataText, centerX - 150);
+                Canvas.SetTop(noDataText, centerY - 12);
+                mainCanvas.Children.Add(noDataText);
             }
         }
 

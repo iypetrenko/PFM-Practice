@@ -99,7 +99,7 @@
                         <TextBox Name="Price" CharacterCasing="Lower" TabIndex="0" Style="{StaticResource ModernTextBox}" />
                     </Grid>
 
-                    <Label Content="Description (Optional)" Margin="0,0,0,6" HorizontalAlignment="Left" FontSize="13" Foreground="#555555" />
+                    <Label Content="Description (Nessarily)" Margin="0,0,0,6" HorizontalAlignment="Left" FontSize="13" Foreground="#555555" />
                     <Grid Margin="0,0,0,15">
                         <TextBox Name="Description" TextWrapping="Wrap" Height="80" Style="{StaticResource ModernTextBox}" CharacterCasing="Lower" TabIndex="0" />
                     </Grid>
