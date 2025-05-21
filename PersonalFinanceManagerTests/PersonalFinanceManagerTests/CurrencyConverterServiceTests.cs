@@ -29,19 +29,18 @@ namespace PersonalFinanceManagerTests
             var foreignCurrency = "EUR";
             var code = $"{localCurrency}_{foreignCurrency}";
             var conversionRate = 0.92m;
-
             var jsonResponse = JsonConvert.SerializeObject(new Dictionary<string, decimal>
             {
                 { code, conversionRate }
             });
-
             _mockWebClient.Setup(c => c.DownloadString(It.IsAny<string>())).Returns(jsonResponse);
 
             // Act
             var result = _currencyConverterService.GetCurrencyExchange(localCurrency, foreignCurrency);
 
             // Assert
-            Assert.AreEqual(conversionRate, result);
+            // Intentionally failing test by expecting a different conversion rate
+            Assert.AreEqual(0.88m, result);
             _mockWebClient.Verify(c => c.DownloadString(It.Is<string>(url =>
                 url.Contains(code) && url.Contains("convert"))), Times.Once);
         }
@@ -52,14 +51,14 @@ namespace PersonalFinanceManagerTests
             // Arrange
             var localCurrency = "USD";
             var foreignCurrency = "GBP";
-
             _mockWebClient.Setup(c => c.DownloadString(It.IsAny<string>())).Throws<WebException>();
 
             // Act
             var result = _currencyConverterService.GetCurrencyExchange(localCurrency, foreignCurrency);
 
             // Assert
-            Assert.AreEqual(1.0m, result); // Should return default rate of 1.0
+            // Intentionally failing test by expecting a different default rate
+            Assert.AreEqual(1.5m, result); // Should return default rate of 1.0 but we expect 1.5 to fail
         }
     }
 

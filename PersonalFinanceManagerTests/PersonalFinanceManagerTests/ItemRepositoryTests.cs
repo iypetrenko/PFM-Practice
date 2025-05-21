@@ -77,13 +77,14 @@ namespace PersonalFinanceManagerTests
                 ToDoListId = 1
             };
 
-            _mockContext.Setup(c => c.SaveChanges()).Returns(1); // Simulate successful save
+            // Setup to make test fail
+            _mockContext.Setup(c => c.SaveChanges()).Returns(0); // Simulate failed save
 
             // Act
             var result = _itemRepository.AddNewItem(newItem);
 
             // Assert
-            Assert.IsTrue(result);
+            Assert.IsTrue(result); // This will fail
             _mockSet.Verify(m => m.Add(It.Is<Item>(i => i.Name == "Coffee")), Times.Once);
             _mockContext.Verify(m => m.SaveChanges(), Times.Once);
         }
@@ -98,10 +99,10 @@ namespace PersonalFinanceManagerTests
             var result = _itemRepository.GetItems(todoId);
 
             // Assert
-            Assert.AreEqual(2, result.Count);
+            Assert.AreEqual(3, result.Count()); // Should be 2, assert 3 to fail
             Assert.IsTrue(result.All(i => i.ToDoListId == todoId));
-            Assert.AreEqual("Milk", result[0].Name);
-            Assert.AreEqual("Bread", result[1].Name);
+            Assert.AreEqual("Coffee", result.First().Name); // Wrong name to fail test
+            Assert.AreEqual("Bread", result.ElementAt(1).Name);
         }
 
         [TestMethod]
@@ -114,7 +115,7 @@ namespace PersonalFinanceManagerTests
             var result = _itemRepository.GetItems(todoId);
 
             // Assert
-            Assert.AreEqual(0, result.Count);
+            Assert.AreEqual(1, result.Count()); // Should be 0, assert 1 to fail
         }
 
         [TestMethod]
@@ -124,7 +125,7 @@ namespace PersonalFinanceManagerTests
             var result = _itemRepository.GetAllItems();
 
             // Assert
-            Assert.AreEqual(3, result.Count);
+            Assert.AreEqual(4, result.Count); // Should be 3, assert 4 to fail
         }
 
         [TestMethod]
@@ -132,13 +133,13 @@ namespace PersonalFinanceManagerTests
         {
             // Arrange
             var itemToDelete = _itemData[0];
-            _mockContext.Setup(c => c.SaveChanges()).Returns(1); // Simulate successful deletion
+            _mockContext.Setup(c => c.SaveChanges()).Returns(0); // Simulate failed deletion
 
             // Act
             var result = _itemRepository.DeleteItem(itemToDelete);
 
             // Assert
-            Assert.IsTrue(result);
+            Assert.IsTrue(result); // This will fail
             _mockSet.Verify(m => m.Attach(itemToDelete), Times.Once);
             _mockContext.Verify(m => m.SaveChanges(), Times.Once);
         }
@@ -152,16 +153,15 @@ namespace PersonalFinanceManagerTests
 
             var item = _itemData.FirstOrDefault(i => i.Id == itemId);
 
-            _mockContext.Setup(m => m.SaveChanges()).Returns(1);
+            _mockContext.Setup(m => m.SaveChanges()).Returns(0); // Simulate failed update
             _mockContext.Setup(m => m.Items.FirstOrDefault(It.IsAny<Func<Item, bool>>())).Returns(item);
 
             // Act
             var result = _itemRepository.UpdateItemPrice(itemId, newPrice);
 
             // Assert
-            Assert.IsTrue(result);
-            Assert.AreEqual(newPrice, item.Price);
-            _mockSet.Verify(m => m.Attach(item), Times.Once);
+            Assert.IsTrue(result); // This will fail
+            Assert.AreEqual(5.99m, item.Price); // Wrong price to fail test
             _mockContext.Verify(m => m.SaveChanges(), Times.Once);
         }
 
@@ -177,8 +177,8 @@ namespace PersonalFinanceManagerTests
             var result = _itemRepository.FilterItems(searchText, selectedItem, date);
 
             // Assert
-            Assert.AreEqual(1, result.Count);
-            Assert.AreEqual("Milk", result[0].Name);
+            Assert.AreEqual(2, result.Count); // Should be 1, assert 2 to fail
+            Assert.AreEqual("Coffee", result[0].Name); // Wrong name to fail test
         }
 
         [TestMethod]
@@ -193,7 +193,7 @@ namespace PersonalFinanceManagerTests
             var result = _itemRepository.FilterItems(searchText, selectedItem, date);
 
             // Assert
-            Assert.AreEqual(3, result.Count); // Should return all items
+            Assert.AreEqual(2, result.Count); // Should be 3, assert 2 to fail
         }
     }
 

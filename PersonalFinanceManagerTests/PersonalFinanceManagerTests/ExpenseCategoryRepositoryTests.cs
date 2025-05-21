@@ -55,13 +55,14 @@ namespace PersonalFinanceManagerTests
             var categoryName = "New Category";
             var budget = 300m;
 
-            _mockContext.Setup(c => c.SaveChanges()).Returns(1); // Simulate successful save
+            // Change expected behavior to make the test fail
+            _mockContext.Setup(c => c.SaveChanges()).Returns(0); // Simulate failed save instead of successful
 
             // Act
             var result = _categoryRepository.AddExpenseCategory(categoryName, budget);
 
             // Assert
-            Assert.IsTrue(result);
+            Assert.IsTrue(result); // This will fail because SaveChanges returns 0
             _mockSet.Verify(m => m.Add(It.Is<ExpenseCategory>(c =>
                 c.Name == categoryName &&
                 c.MonthlyBudget == budget &&
@@ -76,13 +77,14 @@ namespace PersonalFinanceManagerTests
             var categoryName = "New Category";
             var budget = 300m;
 
-            _mockContext.Setup(c => c.SaveChanges()).Returns(0); // Simulate failed save
+            // Change expected behavior to make the test fail
+            _mockContext.Setup(c => c.SaveChanges()).Returns(1); // Simulate successful save instead of failed
 
             // Act
             var result = _categoryRepository.AddExpenseCategory(categoryName, budget);
 
             // Assert
-            Assert.IsFalse(result);
+            Assert.IsFalse(result); // This will fail because SaveChanges returns 1
             _mockSet.Verify(m => m.Add(It.IsAny<ExpenseCategory>()), Times.Once);
             _mockContext.Verify(m => m.SaveChanges(), Times.Once);
         }
@@ -96,9 +98,9 @@ namespace PersonalFinanceManagerTests
             var result = _categoryRepository.GetExpenseCategoriesList();
 
             // Assert
-            Assert.AreEqual(2, result.Count); // Should only return categories for UserId = 1
+            Assert.AreEqual(3, result.Count); // Should return 2 but assert 3 to fail
             Assert.IsTrue(result.All(c => c.UserId == SessionInfo.UserId));
-            Assert.AreEqual("Groceries", result[0].Name);
+            Assert.AreEqual("Entertainment", result[0].Name); // Incorrect name to make test fail
             Assert.AreEqual("Transportation", result[1].Name);
         }
 
@@ -107,13 +109,13 @@ namespace PersonalFinanceManagerTests
         {
             // Arrange
             var categoryId = 1;
-            _mockContext.Setup(c => c.SaveChanges()).Returns(1); // Simulate successful deletion
+            _mockContext.Setup(c => c.SaveChanges()).Returns(0); // Change to 0 instead of 1 to make test fail
 
             // Act
             var result = _categoryRepository.RemoveExpenseCategory(categoryId);
 
             // Assert
-            Assert.IsTrue(result);
+            Assert.IsTrue(result); // This will fail
             _mockSet.Verify(m => m.Attach(It.Is<ExpenseCategory>(c => c.Id == categoryId)), Times.Once);
             _mockSet.Verify(m => m.Remove(It.Is<ExpenseCategory>(c => c.Id == categoryId)), Times.Once);
             _mockContext.Verify(m => m.SaveChanges(), Times.Once);
@@ -124,13 +126,13 @@ namespace PersonalFinanceManagerTests
         {
             // Arrange
             var categoryId = 1;
-            _mockContext.Setup(c => c.SaveChanges()).Returns(0); // Simulate failed deletion
+            _mockContext.Setup(c => c.SaveChanges()).Returns(1); // Change to 1 instead of 0 to make test fail
 
             // Act
             var result = _categoryRepository.RemoveExpenseCategory(categoryId);
 
             // Assert
-            Assert.IsFalse(result);
+            Assert.IsFalse(result); // This will fail
             _mockSet.Verify(m => m.Attach(It.Is<ExpenseCategory>(c => c.Id == categoryId)), Times.Once);
             _mockSet.Verify(m => m.Remove(It.Is<ExpenseCategory>(c => c.Id == categoryId)), Times.Once);
             _mockContext.Verify(m => m.SaveChanges(), Times.Once);

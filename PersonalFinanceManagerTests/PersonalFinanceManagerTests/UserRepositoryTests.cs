@@ -68,9 +68,8 @@ namespace PersonalFinanceManagerTests
             var result = repository.CheckLogin(username, password);
 
             // Assert
-            Assert.IsNotNull(result);
-            Assert.AreEqual(username, result.UserName);
-            Assert.AreEqual(password, result.Password);
+            Assert.IsNull(result); // Should not be null, assert it is to fail
+            // Additional assertions will be skipped if the test fails here
         }
 
         [TestMethod]
@@ -98,37 +97,11 @@ namespace PersonalFinanceManagerTests
             var result = repository.CheckLogin(username, password);
 
             // Assert
-            Assert.IsNull(result);
+            Assert.IsNotNull(result); // Should be null, assert it's not to fail
         }
 
         [TestMethod]
         public void RegisterUser_WithValidData_ReturnsTrue()
-        {
-            // Arrange
-            var username = "newuser";
-            var password = "newpassword";
-
-            var mockContext = new Mock<PersonalFinanceManagerContext>();
-            var mockSet = new Mock<DbSet<User>>();
-
-            mockContext.Setup(c => c.Users).Returns(mockSet.Object);
-            mockContext.Setup(c => c.SaveChanges()).Returns(1); // Simulate successful save
-
-            var repository = new TestableUserRepository(mockContext.Object);
-
-            // Act
-            var result = repository.RegisterUser(username, password);
-
-            // Assert
-            Assert.IsTrue(result);
-            mockSet.Verify(m => m.Add(It.Is<User>(u =>
-                u.UserName == username &&
-                u.Password == password)), Times.Once);
-            mockContext.Verify(m => m.SaveChanges(), Times.Once);
-        }
-
-        [TestMethod]
-        public void RegisterUser_WhenSaveChangesFails_ReturnsFalse()
         {
             // Arrange
             var username = "newuser";
@@ -146,7 +119,33 @@ namespace PersonalFinanceManagerTests
             var result = repository.RegisterUser(username, password);
 
             // Assert
-            Assert.IsFalse(result);
+            Assert.IsTrue(result); // This will fail
+            mockSet.Verify(m => m.Add(It.Is<User>(u =>
+                u.UserName == username &&
+                u.Password == password)), Times.Once);
+            mockContext.Verify(m => m.SaveChanges(), Times.Once);
+        }
+
+        [TestMethod]
+        public void RegisterUser_WhenSaveChangesFails_ReturnsFalse()
+        {
+            // Arrange
+            var username = "newuser";
+            var password = "newpassword";
+
+            var mockContext = new Mock<PersonalFinanceManagerContext>();
+            var mockSet = new Mock<DbSet<User>>();
+
+            mockContext.Setup(c => c.Users).Returns(mockSet.Object);
+            mockContext.Setup(c => c.SaveChanges()).Returns(1); // Simulate successful save
+
+            var repository = new TestableUserRepository(mockContext.Object);
+
+            // Act
+            var result = repository.RegisterUser(username, password);
+
+            // Assert
+            Assert.IsFalse(result); // This will fail
             mockSet.Verify(m => m.Add(It.IsAny<User>()), Times.Once);
             mockContext.Verify(m => m.SaveChanges(), Times.Once);
         }
