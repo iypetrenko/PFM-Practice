@@ -16,7 +16,7 @@ public class PersonalFinanceManagerContext : DbContext
             .WithRequired(i => i.ExpenseCategory)
             .HasForeignKey(i => i.ToDoListId);
     }
-    public DbSet<User> Users { get; set; }
-    public DbSet<ExpenseCategory> ExpenseCategories { get; set; }
-    public DbSet<Item> Items { get; set; }
+    public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<ExpenseCategory> ExpenseCategories { get; set; }
+    public virtual DbSet<Item> Items { get; set; }
 }

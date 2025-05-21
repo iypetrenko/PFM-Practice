@@ -3,100 +3,55 @@ using System.Collections.Generic;
 using System.Net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Moq.Protected;
 using Newtonsoft.Json;
 using PersonalFinanceManager.Services;
-
 namespace PersonalFinanceManagerTests
 {
     [TestClass]
-    public class CurrencyConverterServiceTests
+public class CurrencyConverterServiceTests
+{
+    private Mock<CurrencyConverterService> _mockConverter;
+    private CurrencyConverterService _service;
+
+    [TestInitialize]
+    public void Setup()
     {
-        private Mock<IWebClientWrapper> _mockWebClient;
-        private TestableCurrencyConverterService _currencyConverterService;
-
-        [TestInitialize]
-        public void Initialize()
-        {
-            _mockWebClient = new Mock<IWebClientWrapper>();
-            _currencyConverterService = new TestableCurrencyConverterService(_mockWebClient.Object);
-        }
-
-        [TestMethod]
-        public void GetCurrencyExchange_WithValidCurrencies_ReturnsConversionRate()
-        {
-            // Arrange
-            var localCurrency = "USD";
-            var foreignCurrency = "EUR";
-            var code = $"{localCurrency}_{foreignCurrency}";
-            var conversionRate = 0.92m;
-            var jsonResponse = JsonConvert.SerializeObject(new Dictionary<string, decimal>
-            {
-                { code, conversionRate }
-            });
-            _mockWebClient.Setup(c => c.DownloadString(It.IsAny<string>())).Returns(jsonResponse);
-
-            // Act
-            var result = _currencyConverterService.GetCurrencyExchange(localCurrency, foreignCurrency);
-
-            // Assert
-            // Intentionally failing test by expecting a different conversion rate
-            Assert.AreEqual(0.88m, result);
-            _mockWebClient.Verify(c => c.DownloadString(It.Is<string>(url =>
-                url.Contains(code) && url.Contains("convert"))), Times.Once);
-        }
-
-        [TestMethod]
-        public void GetCurrencyExchange_WhenApiCallFails_ReturnsDefaultRate()
-        {
-            // Arrange
-            var localCurrency = "USD";
-            var foreignCurrency = "GBP";
-            _mockWebClient.Setup(c => c.DownloadString(It.IsAny<string>())).Throws<WebException>();
-
-            // Act
-            var result = _currencyConverterService.GetCurrencyExchange(localCurrency, foreignCurrency);
-
-            // Assert
-            // Intentionally failing test by expecting a different default rate
-            Assert.AreEqual(1.5m, result); // Should return default rate of 1.0 but we expect 1.5 to fail
-        }
+        _mockConverter = new Mock<CurrencyConverterService> { CallBase = true };
+        _service = _mockConverter.Object;
     }
 
-    // Interface for WebClient to make it mockable
-    public interface IWebClientWrapper
+    [TestMethod]
+    public void GetCurrencyExchange_ValidCurrencies_ReturnsCorrectRate()
     {
-        string DownloadString(string address);
+        // Arrange
+        var expectedRate = 27.5m;
+        var testData = new Dictionary<string, decimal> { { "USD_UAH", expectedRate } };
+
+        _mockConverter.Protected()
+            .Setup<string>("DownloadString", ItExpr.IsAny<string>())
+            .Returns(JsonConvert.SerializeObject(testData));
+
+        // Act
+        var result = _service.GetCurrencyExchange("USD", "UAH");
+
+        // Assert
+        Assert.AreEqual(expectedRate, result);
     }
 
-    // WebClient wrapper that implements the interface
-    public class WebClientWrapper : IWebClientWrapper
+    [TestMethod]
+    public void GetCurrencyExchange_ApiFailure_ReturnsDefaultRate()
     {
-        private readonly WebClient _webClient = new WebClient();
+        // Arrange
+        _mockConverter.Protected()
+            .Setup<string>("DownloadString", ItExpr.IsAny<string>())
+            .Throws(new WebException());
 
-        public string DownloadString(string address)
-        {
-            return _webClient.DownloadString(address);
-        }
+        // Act
+        var result = _service.GetCurrencyExchange("USD", "EUR");
+
+        // Assert
+        Assert.AreEqual(1.0m, result);
     }
-
-    // Testable version of the CurrencyConverterService
-    public class TestableCurrencyConverterService : CurrencyConverterService
-    {
-        private readonly IWebClientWrapper _webClient;
-
-        public TestableCurrencyConverterService(IWebClientWrapper webClient)
-        {
-            _webClient = webClient;
-        }
-
-        protected override WebClient CreateWebClient()
-        {
-            return null; // Not used in tests
-        }
-
-        protected override string DownloadString(string url)
-        {
-            return _webClient.DownloadString(url);
-        }
-    }
+}
 }

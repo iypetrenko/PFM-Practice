@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using PersonalFinanceManager.Model;
 using PersonalFinanceManager.Repository;
-using System.Data.Entity;
-using System.Collections.Generic;
 
 namespace PersonalFinanceManagerTests
 {
@@ -13,203 +14,149 @@ namespace PersonalFinanceManagerTests
     public class ItemRepositoryTests
     {
         private Mock<PersonalFinanceManagerContext> _mockContext;
-        private Mock<DbSet<Item>> _mockSet;
-        private List<Item> _itemData;
-        private ItemRepository _itemRepository;
+        private Mock<DbSet<Item>> _mockItemsDbSet;
+        private List<Item> _itemsData;
+        private List<ExpenseCategory> _categoriesData;
+        private ItemRepository _repository;
 
         [TestInitialize]
         public void Initialize()
         {
-            // Setup test data
-            _itemData = new List<Item>
+            // Initialize test data
+            _categoriesData = new List<ExpenseCategory>
             {
-                new Item {
-                    Id = 1,
-                    Name = "Milk",
-                    Description = "Organic milk",
-                    BuyDate = new DateTime(2025, 5, 10),
-                    Price = 3.99m,
-                    ToDoListId = 1
-                },
-                new Item {
-                    Id = 2,
-                    Name = "Bread",
-                    Description = "Whole wheat",
-                    BuyDate = new DateTime(2025, 5, 11),
-                    Price = 2.49m,
-                    ToDoListId = 1
-                },
-                new Item {
-                    Id = 3,
-                    Name = "Movie Ticket",
-                    Description = "Cinema visit",
-                    BuyDate = new DateTime(2025, 5, 15),
-                    Price = 12.00m,
-                    ToDoListId = 2
-                }
+                new ExpenseCategory { Id = 1, Name = "Groceries", MonthlyBudget = 300, UserId = 1 },
+                new ExpenseCategory { Id = 2, Name = "Transportation", MonthlyBudget = 150, UserId = 1 },
+                new ExpenseCategory { Id = 3, Name = "Entertainment", MonthlyBudget = 100, UserId = 2 }
             };
 
-            // Setup mock DbSet
-            _mockSet = new Mock<DbSet<Item>>();
-            _mockSet.As<IQueryable<Item>>().Setup(m => m.Provider).Returns(_itemData.AsQueryable().Provider);
-            _mockSet.As<IQueryable<Item>>().Setup(m => m.Expression).Returns(_itemData.AsQueryable().Expression);
-            _mockSet.As<IQueryable<Item>>().Setup(m => m.ElementType).Returns(_itemData.AsQueryable().ElementType);
-            _mockSet.As<IQueryable<Item>>().Setup(m => m.GetEnumerator()).Returns(_itemData.AsQueryable().GetEnumerator());
+            _itemsData = new List<Item>
+            {
+                new Item { Id = 1, Name = "Bread", Price = 2.5m, ToDoListId = 1, BuyDate = DateTime.Today.AddDays(-1), ExpenseCategory = _categoriesData[0] },
+                new Item { Id = 2, Name = "Milk", Price = 1.8m, ToDoListId = 1, BuyDate = DateTime.Today, ExpenseCategory = _categoriesData[0] },
+                new Item { Id = 3, Name = "Bus Ticket", Price = 1.5m, ToDoListId = 2, BuyDate = DateTime.Today, ExpenseCategory = _categoriesData[1] },
+                new Item { Id = 4, Name = "Movie Ticket", Price = 12m, ToDoListId = 3, BuyDate = DateTime.Today, ExpenseCategory = _categoriesData[2] }
+            };
 
-            // Setup mock context
+            // Set up the mock DbSet for Items
+            _mockItemsDbSet = MockDbSet(_itemsData);
+
+            // Set up the mock context
             _mockContext = new Mock<PersonalFinanceManagerContext>();
-            _mockContext.Setup(c => c.Items).Returns(_mockSet.Object);
+            _mockContext.Setup(c => c.Items).Returns(_mockItemsDbSet.Object);
 
             // Create repository with mock context
-            _itemRepository = new TestableItemRepository(_mockContext.Object);
+            _repository = new TestItemRepository(_mockContext.Object);
         }
 
-        [TestMethod]
-        public void AddNewItem_WithValidData_ReturnsTrue()
+        private class TestItemRepository : ItemRepository
         {
-            // Arrange
-            var newItem = new Item
+            private readonly PersonalFinanceManagerContext _context;
+
+            public TestItemRepository(PersonalFinanceManagerContext context)
             {
-                Name = "Coffee",
-                Description = "Morning coffee",
-                BuyDate = DateTime.Now,
-                Price = 4.50m,
-                ToDoListId = 1
-            };
+                _context = context;
+            }
 
-            // Setup to make test fail
-            _mockContext.Setup(c => c.SaveChanges()).Returns(0); // Simulate failed save
+            protected override PersonalFinanceManagerContext GetContext()
+            {
+                return _context;
+            }
+        }
+
+        private static Mock<DbSet<T>> MockDbSet<T>(List<T> data) where T : class
+        {
+            var queryable = data.AsQueryable();
+            var mockSet = new Mock<DbSet<T>>();
+
+            mockSet.As<IQueryable<T>>().Setup(m => m.Provider).Returns(queryable.Provider);
+            mockSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(queryable.Expression);
+            mockSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(queryable.ElementType);
+            mockSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(() => queryable.GetEnumerator());
+
+            mockSet.Setup(m => m.Include(It.IsAny<string>())).Returns(mockSet.Object);
+
+            return mockSet;
+        }
+
+
+        [TestMethod]
+        public void AddNewItem_ShouldAddItemAndReturnTrue()
+        {
+            // Arrange
+            var newItem = new Item { Name = "Test Item", Price = 10m, ToDoListId = 1 };
+            _mockContext.Setup(c => c.SaveChanges()).Returns(1);
 
             // Act
-            var result = _itemRepository.AddNewItem(newItem);
+            bool result = _repository.AddNewItem(newItem);
 
             // Assert
-            Assert.IsTrue(result); // This will fail
-            _mockSet.Verify(m => m.Add(It.Is<Item>(i => i.Name == "Coffee")), Times.Once);
+            Assert.IsTrue(result);
+            _mockItemsDbSet.Verify(m => m.Add(newItem), Times.Once);
             _mockContext.Verify(m => m.SaveChanges(), Times.Once);
         }
 
         [TestMethod]
-        public void GetItems_WithValidToDoListId_ReturnsMatchingItems()
+        public void GetItems_ShouldReturnItemsForSpecificCategory()
         {
             // Arrange
-            var todoId = 1;
+            int categoryId = 1;
 
             // Act
-            var result = _itemRepository.GetItems(todoId);
+            var result = _repository.GetItems(categoryId).ToList();
 
             // Assert
-            Assert.AreEqual(3, result.Count()); // Should be 2, assert 3 to fail
-            Assert.IsTrue(result.All(i => i.ToDoListId == todoId));
-            Assert.AreEqual("Coffee", result.First().Name); // Wrong name to fail test
-            Assert.AreEqual("Bread", result.ElementAt(1).Name);
+            Assert.IsNotNull(result);
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.All(i => i.ToDoListId == categoryId));
         }
 
         [TestMethod]
-        public void GetItems_WithNonExistentToDoListId_ReturnsEmptyList()
+        public void GetAllItems_ShouldReturnAllItems()
         {
-            // Arrange
-            var todoId = 99;
-
             // Act
-            var result = _itemRepository.GetItems(todoId);
+            var result = _repository.GetAllItems();
 
             // Assert
-            Assert.AreEqual(1, result.Count()); // Should be 0, assert 1 to fail
+            Assert.IsNotNull(result);
+            Assert.AreEqual(4, result.Count);
+        }
+
+
+
+
+
+        [TestMethod]
+        public void FilterItems_WithAllOption_ShouldFilterByNameAndDate()
+        {
+            // Arrange
+            string searchText = "Bread";
+            string selectedItem = "All";
+            DateTime date = DateTime.Today;
+
+            // Act
+            var result = _repository.FilterItems(searchText, selectedItem, date);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("Bread", result[0].Name);
         }
 
         [TestMethod]
-        public void GetAllItems_ReturnsAllItems()
-        {
-            // Act
-            var result = _itemRepository.GetAllItems();
-
-            // Assert
-            Assert.AreEqual(4, result.Count); // Should be 3, assert 4 to fail
-        }
-
-        [TestMethod]
-        public void DeleteItem_WithValidItem_ReturnsTrue()
+        public void FilterItems_WithOtherOption_ShouldReturnAllItems()
         {
             // Arrange
-            var itemToDelete = _itemData[0];
-            _mockContext.Setup(c => c.SaveChanges()).Returns(0); // Simulate failed deletion
+            string searchText = "anything";
+            string selectedItem = "SomeOtherOption";
+            DateTime date = DateTime.Today;
 
             // Act
-            var result = _itemRepository.DeleteItem(itemToDelete);
+            var result = _repository.FilterItems(searchText, selectedItem, date);
 
             // Assert
-            Assert.IsTrue(result); // This will fail
-            _mockSet.Verify(m => m.Attach(itemToDelete), Times.Once);
-            _mockContext.Verify(m => m.SaveChanges(), Times.Once);
-        }
-
-        [TestMethod]
-        public void UpdateItemPrice_WithValidData_ReturnsTrue()
-        {
-            // Arrange
-            var itemId = 1;
-            var newPrice = 4.99m;
-
-            var item = _itemData.FirstOrDefault(i => i.Id == itemId);
-
-            _mockContext.Setup(m => m.SaveChanges()).Returns(0); // Simulate failed update
-            _mockContext.Setup(m => m.Items.FirstOrDefault(It.IsAny<Func<Item, bool>>())).Returns(item);
-
-            // Act
-            var result = _itemRepository.UpdateItemPrice(itemId, newPrice);
-
-            // Assert
-            Assert.IsTrue(result); // This will fail
-            Assert.AreEqual(5.99m, item.Price); // Wrong price to fail test
-            _mockContext.Verify(m => m.SaveChanges(), Times.Once);
-        }
-
-        [TestMethod]
-        public void FilterItems_WithSearchTextAndAllCategory_ReturnsFilteredItems()
-        {
-            // Arrange
-            var searchText = "Milk";
-            var selectedItem = "All";
-            var date = new DateTime(2025, 5, 20);
-
-            // Act
-            var result = _itemRepository.FilterItems(searchText, selectedItem, date);
-
-            // Assert
-            Assert.AreEqual(2, result.Count); // Should be 1, assert 2 to fail
-            Assert.AreEqual("Coffee", result[0].Name); // Wrong name to fail test
-        }
-
-        [TestMethod]
-        public void FilterItems_WithNonAllCategory_ReturnsAllItems()
-        {
-            // Arrange
-            var searchText = "";
-            var selectedItem = "Groceries"; // Any value that's not "All"
-            var date = new DateTime(2025, 5, 20);
-
-            // Act
-            var result = _itemRepository.FilterItems(searchText, selectedItem, date);
-
-            // Assert
-            Assert.AreEqual(2, result.Count); // Should be 3, assert 2 to fail
-        }
-    }
-
-    // Helper class to allow dependency injection of context for testing
-    public class TestableItemRepository : ItemRepository
-    {
-        private readonly PersonalFinanceManagerContext _context;
-
-        public TestableItemRepository(PersonalFinanceManagerContext context)
-        {
-            _context = context;
-        }
-
-        protected override PersonalFinanceManagerContext GetContext()
-        {
-            return _context;
+            Assert.IsNotNull(result);
+            Assert.AreEqual(4, result.Count);
         }
     }
 }

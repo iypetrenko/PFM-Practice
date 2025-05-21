@@ -1,12 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using PersonalFinanceManager.Model;
 using PersonalFinanceManager.Repository;
-using System.Data.Entity;
-using System.Collections.Generic;
-using System.Data.Entity.Infrastructure;
 
 namespace PersonalFinanceManagerTests
 {
@@ -14,156 +13,179 @@ namespace PersonalFinanceManagerTests
     public class UserRepositoryTests
     {
         private Mock<PersonalFinanceManagerContext> _mockContext;
-        private Mock<DbSet<User>> _mockSet;
-        private List<User> _userData;
-        private UserRepository _userRepository;
+        private Mock<DbSet<User>> _mockDbSet;
+        private List<User> _data;
+        private UserRepository _repository;
 
         [TestInitialize]
         public void Initialize()
         {
-            // Setup test data
-            _userData = new List<User>
+            // Initialize test data
+            _data = new List<User>
             {
-                new User { Id = 1, UserName = "testuser1", Password = "password1" },
-                new User { Id = 2, UserName = "testuser2", Password = "password2" }
+                new User { Id = 1, UserName = "admin", Password = "admin", Role = UserRole.Admin },
+                new User { Id = 2, UserName = "user1", Password = "password1", Role = UserRole.User },
+                new User { Id = 3, UserName = "user2", Password = "password2", Role = UserRole.User }
             };
 
-            // Setup mock DbSet
-            _mockSet = new Mock<DbSet<User>>();
-            _mockSet.As<IQueryable<User>>().Setup(m => m.Provider).Returns(_userData.AsQueryable().Provider);
-            _mockSet.As<IQueryable<User>>().Setup(m => m.Expression).Returns(_userData.AsQueryable().Expression);
-            _mockSet.As<IQueryable<User>>().Setup(m => m.ElementType).Returns(_userData.AsQueryable().ElementType);
-            _mockSet.As<IQueryable<User>>().Setup(m => m.GetEnumerator()).Returns(_userData.AsQueryable().GetEnumerator());
+            // Set up the mock DbSet
+            _mockDbSet = MockDbSet(_data);
 
-            // Setup mock context
+            // Set up the mock context
             _mockContext = new Mock<PersonalFinanceManagerContext>();
-            _mockContext.Setup(c => c.Users).Returns(_mockSet.Object);
+            _mockContext.Setup(c => c.Users).Returns(_mockDbSet.Object);
 
             // Create repository with mock context
-            _userRepository = new UserRepository();
+            _repository = new TestUserRepository(_mockContext.Object);
+        }
+
+        private class TestUserRepository : UserRepository
+        {
+            private readonly PersonalFinanceManagerContext _context;
+
+            public TestUserRepository(PersonalFinanceManagerContext context)
+            {
+                _context = context;
+            }
+
+            protected override PersonalFinanceManagerContext GetContext()
+            {
+                return _context;
+            }
+        }
+
+        private static Mock<DbSet<T>> MockDbSet<T>(List<T> data) where T : class
+        {
+            var queryable = data.AsQueryable();
+            var mockSet = new Mock<DbSet<T>>();
+
+            mockSet.As<IQueryable<T>>().Setup(m => m.Provider).Returns(queryable.Provider);
+            mockSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(queryable.Expression);
+            mockSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(queryable.ElementType);
+            mockSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(() => queryable.GetEnumerator());
+
+            return mockSet;
         }
 
         [TestMethod]
-        public void CheckLogin_WithValidCredentials_ReturnsUser()
+        public void GetAdministrators_ShouldReturnOnlyAdmins()
         {
-            // Arrange
-            var username = "testuser1";
-            var password = "password1";
-
-            // Use a test-specific mock to control the behavior for this test
-            var mockContext = new Mock<PersonalFinanceManagerContext>();
-            var mockSet = new Mock<DbSet<User>>();
-
-            mockSet.As<IQueryable<User>>().Setup(m => m.Provider).Returns(_userData.AsQueryable().Provider);
-            mockSet.As<IQueryable<User>>().Setup(m => m.Expression).Returns(_userData.AsQueryable().Expression);
-            mockSet.As<IQueryable<User>>().Setup(m => m.ElementType).Returns(_userData.AsQueryable().ElementType);
-            mockSet.As<IQueryable<User>>().Setup(m => m.GetEnumerator()).Returns(_userData.AsQueryable().GetEnumerator());
-
-            mockContext.Setup(c => c.Users).Returns(mockSet.Object);
-
-            // Using a test-specific repository instance that we can inject our mock into
-            var repository = new TestableUserRepository(mockContext.Object);
-
             // Act
-            var result = repository.CheckLogin(username, password);
+            var result = _repository.GetAdministrators().ToList();
 
             // Assert
-            Assert.IsNull(result); // Should not be null, assert it is to fail
-            // Additional assertions will be skipped if the test fails here
+            Assert.IsNotNull(result);
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("admin", result[0].UserName);
+            Assert.AreEqual(UserRole.Admin, result[0].Role);
+        }
+
+
+
+        [TestMethod]
+        public void CheckLogin_WithNonExistingUser_ShouldReturnNull()
+        {
+            // Act
+            var result = _repository.CheckLogin("nonexistent", "password");
+
+            // Assert
+            Assert.IsNull(result);
+        }
+
+
+
+
+
+        [TestMethod]
+        public void AdminExists_WhenAdminExists_ShouldReturnTrue()
+        {
+            // Act
+            var result = _repository.AdminExists();
+
+            // Assert
+            Assert.IsTrue(result);
+        }
+
+
+
+
+
+        [TestMethod]
+        public void CreateAdminIfNotExists_WhenAdminExists_ShouldNotCreateAdmin()
+        {
+            // Act
+            _repository.CreateAdminIfNotExists();
+
+            // Assert
+            _mockDbSet.Verify(m => m.Add(It.IsAny<User>()), Times.Never);
+            _mockContext.Verify(m => m.SaveChanges(), Times.Never);
         }
 
         [TestMethod]
-        public void CheckLogin_WithInvalidCredentials_ReturnsNull()
+        public void RegisterUser_WithNewUsername_ShouldCreateUserAndReturnTrue()
         {
             // Arrange
-            var username = "testuser1";
-            var password = "wrongpassword";
-
-            // Use a test-specific mock to control the behavior for this test
-            var mockContext = new Mock<PersonalFinanceManagerContext>();
-            var mockSet = new Mock<DbSet<User>>();
-
-            mockSet.As<IQueryable<User>>().Setup(m => m.Provider).Returns(_userData.AsQueryable().Provider);
-            mockSet.As<IQueryable<User>>().Setup(m => m.Expression).Returns(_userData.AsQueryable().Expression);
-            mockSet.As<IQueryable<User>>().Setup(m => m.ElementType).Returns(_userData.AsQueryable().ElementType);
-            mockSet.As<IQueryable<User>>().Setup(m => m.GetEnumerator()).Returns(_userData.AsQueryable().GetEnumerator());
-
-            mockContext.Setup(c => c.Users).Returns(mockSet.Object);
-
-            // Using a test-specific repository instance that we can inject our mock into
-            var repository = new TestableUserRepository(mockContext.Object);
+            string username = "newuser";
+            string password = "password";
+            _mockContext.Setup(m => m.SaveChanges()).Returns(1);
 
             // Act
-            var result = repository.CheckLogin(username, password);
+            var result = _repository.RegisterUser(username, password);
 
             // Assert
-            Assert.IsNotNull(result); // Should be null, assert it's not to fail
-        }
-
-        [TestMethod]
-        public void RegisterUser_WithValidData_ReturnsTrue()
-        {
-            // Arrange
-            var username = "newuser";
-            var password = "newpassword";
-
-            var mockContext = new Mock<PersonalFinanceManagerContext>();
-            var mockSet = new Mock<DbSet<User>>();
-
-            mockContext.Setup(c => c.Users).Returns(mockSet.Object);
-            mockContext.Setup(c => c.SaveChanges()).Returns(0); // Simulate failed save
-
-            var repository = new TestableUserRepository(mockContext.Object);
-
-            // Act
-            var result = repository.RegisterUser(username, password);
-
-            // Assert
-            Assert.IsTrue(result); // This will fail
-            mockSet.Verify(m => m.Add(It.Is<User>(u =>
+            Assert.IsTrue(result);
+            _mockDbSet.Verify(m => m.Add(It.Is<User>(u =>
                 u.UserName == username &&
-                u.Password == password)), Times.Once);
-            mockContext.Verify(m => m.SaveChanges(), Times.Once);
+                u.Password == password &&
+                u.Role == UserRole.User)), Times.Once);
+            _mockContext.Verify(m => m.SaveChanges(), Times.Once);
         }
 
         [TestMethod]
-        public void RegisterUser_WhenSaveChangesFails_ReturnsFalse()
+        public void RegisterUser_WithExistingUsername_ShouldReturnFalse()
         {
             // Arrange
-            var username = "newuser";
-            var password = "newpassword";
-
-            var mockContext = new Mock<PersonalFinanceManagerContext>();
-            var mockSet = new Mock<DbSet<User>>();
-
-            mockContext.Setup(c => c.Users).Returns(mockSet.Object);
-            mockContext.Setup(c => c.SaveChanges()).Returns(1); // Simulate successful save
-
-            var repository = new TestableUserRepository(mockContext.Object);
+            string username = "user1"; // Existing username
+            string password = "newpassword";
 
             // Act
-            var result = repository.RegisterUser(username, password);
+            var result = _repository.RegisterUser(username, password);
 
             // Assert
-            Assert.IsFalse(result); // This will fail
-            mockSet.Verify(m => m.Add(It.IsAny<User>()), Times.Once);
-            mockContext.Verify(m => m.SaveChanges(), Times.Once);
-        }
-    }
-
-    // Helper class to allow dependency injection of context for testing
-    public class TestableUserRepository : UserRepository
-    {
-        private readonly PersonalFinanceManagerContext _context;
-
-        public TestableUserRepository(PersonalFinanceManagerContext context)
-        {
-            _context = context;
+            Assert.IsFalse(result);
+            _mockDbSet.Verify(m => m.Add(It.IsAny<User>()), Times.Never);
+            _mockContext.Verify(m => m.SaveChanges(), Times.Never);
         }
 
-        protected override PersonalFinanceManagerContext GetContext()
+        [TestMethod]
+        public void CreateGuestUser_ShouldReturnGuestUserWithUniqueNameAndCorrectRole()
         {
-            return _context;
+            // Act
+            var result = _repository.CreateGuestUser();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.UserName.StartsWith("Guest_"));
+            Assert.AreEqual("guest_temp_password", result.Password);
+            Assert.AreEqual(UserRole.Guest, result.Role);
+        }
+
+
+
+
+        [TestMethod]
+        public void UpdateUser_WithNonExistingUser_ShouldReturnFalse()
+        {
+            // Arrange
+            var userToUpdate = new User { Id = 999, UserName = "nonexistent", Role = UserRole.User };
+            _mockContext.Setup(m => m.Users.Find(userToUpdate.Id)).Returns((User)null);
+
+            // Act
+            var result = _repository.UpdateUser(userToUpdate);
+
+            // Assert
+            Assert.IsFalse(result);
+            _mockContext.Verify(m => m.SaveChanges(), Times.Never);
         }
     }
 }

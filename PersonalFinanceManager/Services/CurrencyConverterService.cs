@@ -18,7 +18,7 @@ namespace PersonalFinanceManager.Services
         {
             return new WebClient();
         }
-        protected virtual string DownloadString(string url)
+        protected internal virtual string DownloadString(string url)
         {
             var webClient = CreateWebClient();
             return webClient.DownloadString(url);
