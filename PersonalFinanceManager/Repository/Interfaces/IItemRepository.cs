@@ -6,16 +6,13 @@ namespace PersonalFinanceManager.Repository.Interface
 {
     public interface IItemRepository
     {
-        bool AddNewItem(Item todoItem);
-
-        List<Item> GetItems(int todoId);
-
+        IEnumerable<Item> GetItems(int categoryId);
+        IEnumerable<Item> GetUserItems(int userId);
         List<Item> GetAllItems();
-
+        bool AddNewItem(Item todoItem);
         bool DeleteItem(Item item);
-
         bool UpdateItemPrice(int itemId, decimal newPrice);
-
         List<Item> FilterItems(string searchText, string selectedItem, DateTime date);
     }
+
 }

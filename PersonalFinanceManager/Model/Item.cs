@@ -25,5 +25,7 @@ namespace PersonalFinanceManager.Model
 
         [Required]
         public int ToDoListId { get; set; }
+        [ForeignKey("ToDoListId")]
+        public virtual ExpenseCategory ExpenseCategory { get; set; }
     }
 }

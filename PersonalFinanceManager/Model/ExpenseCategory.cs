@@ -18,5 +18,7 @@ namespace PersonalFinanceManager.Model
 
         [Required]
         public decimal MonthlyBudget {get; set;}
+
+        public virtual ICollection<Item> Items { get; set; }
     }
 }

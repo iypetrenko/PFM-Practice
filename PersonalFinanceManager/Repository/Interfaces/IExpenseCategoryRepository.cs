@@ -5,10 +5,8 @@ namespace PersonalFinanceManager.Repository.Interface
 {
     public interface IExpenseCategoryRepository
     {
-        bool AddExpenseCategory(string categoryName, decimal budget);
-
         List<ExpenseCategory> GetExpenseCategoriesList();
-
+        bool AddExpenseCategory(string categoryName, decimal budget);
         bool RemoveExpenseCategory(int id);
     }
 }

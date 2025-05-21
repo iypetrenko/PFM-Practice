@@ -13,7 +13,16 @@ namespace PersonalFinanceManager.Repository
         {
             return new PersonalFinanceManagerContext();
         }
-
+        public IEnumerable<Item> GetUserItems(int userId)
+        {
+            using (var context = new PersonalFinanceManagerContext())
+            {
+                return context.Items
+                    .Include(i => i.ExpenseCategory) // Добавляем включение связанных данных
+                    .Where(i => i.ExpenseCategory.UserId == userId)
+                    .ToList();
+            }
+        }
         public bool AddNewItem(Item todoItem)
         {
             using (var db = GetContext())
@@ -24,11 +33,11 @@ namespace PersonalFinanceManager.Repository
             }
         }
 
-        public List<Item> GetItems(int todoId)
+        public IEnumerable<Item> GetItems(int categoryId)
         {
             using (var db = GetContext())
             {
-                return db.Items.Where(p => p.ToDoListId == todoId).ToList();
+                return db.Items.Where(p => p.ToDoListId == categoryId).ToList();
             }
         }
 

@@ -46,24 +46,16 @@ namespace PersonalFinanceManager
             mainCanvas.Width = pieWidth;
             mainCanvas.Height = pieHeight;
 
-            var expenseCategories = _categoryList.GetExpenseCategoriesList();
-            var items = _itemList.GetAllItems();
+            var expenseCategories = _categoryList.GetExpenseCategoriesList()
+                .Where(c => c.UserId == SessionInfo.UserId).ToList();
+
+            var items = _itemList.GetUserItems(SessionInfo.UserId);
             Categories = new List<Category>();
 
-            decimal grandTotalSpent = 0;
-            decimal budgetLimit = 0;
-
-            foreach (var expenseCategory in expenseCategories)
-            {
-                budgetLimit += expenseCategory.MonthlyBudget;
-            }
-
+            // Исправленный подсчет сумм
+            decimal grandTotalSpent = items.Sum(i => i.Price);
+            decimal budgetLimit = expenseCategories.Sum(c => c.MonthlyBudget);
             BudgetText.DataContext = new Limits() { Limit = "Виділений бюджет: " + budgetLimit };
-
-            foreach (var item in items)
-            {
-                grandTotalSpent += item.Price;
-            }
 
             SpentText.DataContext = new Limits() { Limit = "Загальні витрати: " + grandTotalSpent };
 
@@ -73,22 +65,14 @@ namespace PersonalFinanceManager
                 foreach (var expenseCategory in expenseCategories)
                 {
                     var auxItems = _itemList.GetItems(expenseCategory.Id);
+                    decimal categoryTotal = auxItems.Sum(i => i.Price);
 
-                    decimal categoryTotal = 0;
-
-                    foreach (var item in auxItems)
+                    Categories.Add(new Category
                     {
-                        categoryTotal += item.Price;
-                    }
-
-                    // Додаємо категорію тільки якщо є витрати 
-                    // або якщо це важливо для інтерфейсу, можна додавати з нульовим відсотком
-                    Category aux = new Category();
-                    aux.Title = expenseCategory.Name;
-                    aux.Percentage = grandTotalSpent > 0 ? (float)(categoryTotal / grandTotalSpent) * 100 : 0;
-                    aux.ColorBrush = PickBrush();
-
-                    Categories.Add(aux);
+                        Title = expenseCategory.Name,
+                        Percentage = (float)(categoryTotal / grandTotalSpent * 100),
+                        ColorBrush = PickBrush()
+                    });
                 }
 
                 detailsItemsControl.ItemsSource = Categories;
@@ -220,26 +204,23 @@ namespace PersonalFinanceManager
 
         private List<SpendingCategories> GetUserExpenses()
         {
-            var expenseCategories = _categoryList.GetExpenseCategoriesList();
-            var items = _itemList.GetAllItems();
+            var expenseCategories = _categoryList.GetExpenseCategoriesList()
+                .Where(c => c.UserId == SessionInfo.UserId).ToList();
+
+            var items = _itemList.GetUserItems(SessionInfo.UserId);
+
             List<SpendingCategories> output = new List<SpendingCategories>();
 
             foreach (var cat in expenseCategories)
             {
-                if (cat.UserId == SessionInfo.UserId)
+                var aux = new SpendingCategories
                 {
-                    var aux = new SpendingCategories();
-                    aux.Name = cat.Name;
-                    aux.MonthlyBudget = cat.MonthlyBudget;
+                    Name = cat.Name,
+                    MonthlyBudget = cat.MonthlyBudget,
+                    Expenses = items.Where(i => i.ToDoListId == cat.Id).Sum(i => i.Price)
+                };
 
-                    foreach (var item in items)
-                    {
-                        if (item.ToDoListId == cat.Id)
-                            aux.Expenses += item.Price;
-                    }
-
-                    output.Add(aux);
-                }
+                output.Add(aux);
             }
 
             return output;
