@@ -61,4 +61,4 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
-PersonalFinanceManager/MainWindow.xaml.cs text
+PersonalFinanceManager/MainWindow.xaml.cs text eol=lf
