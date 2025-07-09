@@ -17,6 +17,8 @@ namespace PersonalFinanceManager
         {   
             InitializeComponent();
             _currentUser = user;
+            Console.WriteLine("Jira integration works!");
+
             ConfigureUIForUserRole();
             LoadToDoLists();
         }
