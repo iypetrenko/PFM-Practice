@@ -1,0 +1,43 @@
+From 7b87764ea411a0ebc698fe02c47d5b38242ed952 Mon Sep 17 00:00:00 2001
+From: iypetrenko <i.y.petrenko@student.khai.edu>
+Date: Wed, 9 Jul 2025 13:22:03 +0300
+Subject: [PATCH] =?UTF-8?q?fix:=20=D0=B8=D0=B7=D0=BC=D0=B5=D0=BD=D0=B5?=
+ =?UTF-8?q?=D0=BD=D0=B8=D1=8F=20=D0=B2=20main?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ PersonalFinanceManager/MainWindow.xaml.cs | Bin 3846 -> 4001 bytes
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+
+diff --git a/PersonalFinanceManager/MainWindow.xaml.cs b/PersonalFinanceManager/MainWindow.xaml.cs
+index 5c30cf08b0d5cf204c040b7e990444b5be709641..f7da690ba1b5ace877e7f21ad062c4496d5bfe75 100644
+GIT binary patch
+delta 907
+zcmZvbJ#5oJ6vzFQ*gpHY6<{d@;v@x^RDzU52vh~NQiBSm&C-RXDhf0MBCV0qi8ccZ
+z(2eT$qDU+t#L9>e1ELaBS0n~T1~w#M;eU3)y?{^p`JLbYecZGCFc=h{<W$<p6@lG?
+z)&K*m8Ljs=da-S`qSa1Um=i)#+4<(+{&PtszNnrDx74yhY?Js?^|VE-gbSMw>RtFQ
+zXs5s%S~!w8Vkba+JNCTP%J6^G#=-kka8p&EcwVm_dVriudQ~Sz{DFQ8`Y-wdST#a$
+zIulSc>UP`rdY#oqq8a16###9Gj8?1**k6SR7>`qRGFRYyo|*Lymqv{(=Qtn9*5n4R
+zXJ??^&IaIT&mWF?pIwmkC(T(XSIpwD^067p%Gahi#wT+g46TXLw3~x@E?X5}ewa8I
+ze`_7(FDzf9#N4<1{|NgH;=e30jx%-%jO-l0X^+NM9UR!Tf}FmeZebGtYM+x^9%J=?
+z+Z@;-f5a-~G+4Abl#7Xcdu&e5mv_VnW}G~T;T}s<i2BLGYiY?*`_2^fu6rVh8Xojj
+zcb?Kjo0w4><9g-#kiT;;f<N48@Depae1b<(^`El*8C{c$ey2I8FMBm`%@e=E8&6CX
+lZBI$@2Z!%ZDw9e{xvfOX8rB_U1G~CWg5Ab$T_J@jzXATpvljpW
+
+delta 808
+zcmZuvL2J}d5GKj)CV9!`pw_yU?ylIB1Y~K~s+0u_yNgimdZ;~1W1HHwF<F|RhmanH
+z-Wt9`K@Z}!&=&jw;xF(bc-6Co{sV1avXH!OJBP=cZ{~e7@0<Bj`%vAx6<2EU&Lr20
+zcdBB?bN#@l*D317CnQDVlQD4IGFG@5LR{;u?GLOq8x}XtlMn~oREgB7h4{s7q0QgL
+z2CtV>D23^Pj}-mJ-@zY#8lo^svS@@Ep^>{G-Utnj;FItQ|Al9GTF@~l7zt8%j=zN-
+zMXGYga~x~n+v`{@PSe<Kv5OzYwvw|FN_!J?r8$;5C@oa8l%%ya&wXca2ljU3#isY(
+zFk3iQ#xAj_;schYC$_OC)-I-1mON{H#p`-YeX5{gW`#nWiaKsci+CxSS_Y@mU|%w>
+zjX*>Ar)1)vWM01%idtyN_pm9~u`3(+DmQUNbP%FeMslOfi-uAxl5zGE4ryL&<%skq
+zvR6qPEC(5~G!?o5Ni4AtuA<-0+yrvG*L{~2GcOVmYUxx?l}9YetU8Y^b>d3tzpMAz
+z)HBtDS$>Gs@?(51calxY_be%p@*7%{eYBxH!J#&b-`aA0q}hNDt7`{V-|^X&^LY#f
+Hh)8q}`iZ&~
+
+-- 
+2.45.1.windows.1
+
